@@ -17,13 +17,13 @@
 <?import javafx.scene.shape.Line?>
 <?import javafx.scene.text.Font?>
 
-<HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="550.0" prefWidth="762.0" stylesheets="@Styles.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.cw_ood.News_Controller">
+<HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="674.0" prefWidth="1268.0" stylesheets="@Styles.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.cw_ood.News_Controller">
    <children>
-      <AnchorPane prefHeight="501.0" prefWidth="777.0">
+      <AnchorPane prefHeight="674.0" prefWidth="1268.0">
          <children>
-            <AnchorPane fx:id="Log_in_panel" prefHeight="501.0" prefWidth="762.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <AnchorPane fx:id="Log_in_panel" layoutY="116.0" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="674.0" prefWidth="1268.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <children>
-                  <ImageView fitHeight="233.0" fitWidth="200.0" layoutX="59.0" layoutY="151.0" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="153.0" AnchorPane.topAnchor="151.0">
+                  <ImageView fitHeight="233.0" fitWidth="200.0" layoutX="348.0" layoutY="259.0" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="289.0" AnchorPane.topAnchor="259.0">
                      <image>
                         <Image url="@../../../log_in.png" />
                      </image>
@@ -31,21 +31,21 @@
                         <Rectangle2D />
                      </viewport>
                   </ImageView>
-                  <Line endX="-58.0" endY="245.0" layoutX="370.0" layoutY="146.0" startX="-58.0" startY="-36.0" stroke="#868686" strokeLineCap="ROUND" strokeLineJoin="ROUND" strokeType="OUTSIDE" strokeWidth="2.0" AnchorPane.bottomAnchor="109.0" AnchorPane.topAnchor="109.5" />
-                  <Button fx:id="Admin_button" layoutX="540.0" layoutY="76.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="109.0" text="Admin" />
-                  <Button fx:id="user_button" layoutX="423.0" layoutY="76.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="109.0" text="User" textAlignment="CENTER" />
-                  <Hyperlink fx:id="forgot_password" layoutX="554.0" layoutY="382.0" onAction="#Reset_password" text="Forgot Password ?">
+                  <Line endX="-58.0" endY="245.0" layoutX="659.0" layoutY="256.0" startX="-58.0" startY="-36.0" stroke="#868686" strokeLineCap="ROUND" strokeLineJoin="ROUND" strokeType="OUTSIDE" strokeWidth="2.0" AnchorPane.bottomAnchor="245.0" AnchorPane.topAnchor="218.0" />
+                  <Button fx:id="Admin_button" layoutX="829.0" layoutY="184.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="109.0" text="Admin" />
+                  <Button fx:id="user_button" layoutX="712.0" layoutY="184.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="109.0" text="User" textAlignment="CENTER" />
+                  <Hyperlink fx:id="forgot_password" layoutX="843.0" layoutY="490.0" onAction="#Reset_password" text="Forgot Password ?">
                      <font>
                         <Font size="14.0" />
                      </font>
                   </Hyperlink>
-                  <Hyperlink fx:id="signUp" layoutX="469.0" layoutY="382.0" onAction="#SignUp" text="Sign Up">
+                  <Hyperlink fx:id="signUp" layoutX="758.0" layoutY="490.0" onAction="#SignUp" text="Sign Up">
                      <font>
                         <Font size="14.0" />
                      </font>
                   </Hyperlink>
-                  <Label layoutX="394.0" layoutY="388.0" text="No Account?" />
-                  <AnchorPane fx:id="Login_field" layoutX="381.0" layoutY="127.0" prefHeight="264.0" prefWidth="309.0">
+                  <Label layoutX="683.0" layoutY="496.0" text="No Account?" />
+                  <AnchorPane fx:id="Login_field" layoutX="670.0" layoutY="235.0" prefHeight="264.0" prefWidth="309.0">
                      <children>
                         <TextField fx:id="Login_username_field" alignment="CENTER" layoutX="21.0" layoutY="37.0" prefHeight="41.0" prefWidth="267.0" promptText="Username">
                            <font>
@@ -63,7 +63,7 @@
                         <Button fx:id="login_button" layoutX="67.0" layoutY="187.0" mnemonicParsing="false" onAction="#Login_to_system" prefHeight="41.0" prefWidth="176.0" text="Log in" textAlignment="CENTER" />
                      </children>
                   </AnchorPane>
-                  <AnchorPane fx:id="Sign_up_panel" layoutX="381.0" layoutY="127.0" prefHeight="264.0" prefWidth="309.0" visible="false">
+                  <AnchorPane fx:id="Sign_up_panel" layoutX="670.0" layoutY="235.0" prefHeight="264.0" prefWidth="309.0" visible="false">
                      <children>
                         <TextField fx:id="Signup_username_field" alignment="CENTER" layoutX="21.0" layoutY="37.0" prefHeight="41.0" prefWidth="267.0" promptText="Set Username">
                            <font>
@@ -91,7 +91,7 @@
                         </Hyperlink>
                      </children>
                   </AnchorPane>
-                  <AnchorPane fx:id="Password_reset" layoutX="381.0" layoutY="127.0" prefHeight="264.0" prefWidth="309.0" visible="false">
+                  <AnchorPane fx:id="Password_reset" layoutX="670.0" layoutY="235.0" prefHeight="264.0" prefWidth="309.0" visible="false">
                      <children>
                         <TextField fx:id="reset_username_field" alignment="CENTER" layoutX="21.0" layoutY="37.0" prefHeight="41.0" prefWidth="267.0" promptText="Enter Username">
                            <font>
@@ -121,7 +121,7 @@
                   </AnchorPane>
                </children>
             </AnchorPane>
-            <AnchorPane fx:id="User_dashboard" prefHeight="550.0" prefWidth="762.0" visible="false">
+            <AnchorPane fx:id="User_dashboard" prefHeight="674.0" prefWidth="1268.0" visible="false">
                <children>
                   <Pane layoutX="14.0" layoutY="16.0" prefHeight="75.0" prefWidth="152.0">
                      <children>
@@ -142,38 +142,40 @@
                         </Label>
                      </children>
                   </Pane>
-                  <AnchorPane fx:id="nav_panel" layoutX="17.0" layoutY="91.0" prefHeight="55.0" prefWidth="728.0">
+                  <AnchorPane fx:id="nav_panel" layoutX="3.0" layoutY="91.0" prefHeight="55.0" prefWidth="1254.0">
                      <children>
-                        <Button layoutX="36.0" layoutY="15.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="90.0" text="Home" textAlignment="CENTER">
+                        <Button layoutX="298.0" layoutY="12.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="90.0" text="Home" textAlignment="CENTER">
                            <font>
                               <Font name="Lucida Sans Demibold Roman" size="12.0" />
                            </font></Button>
-                        <Button layoutX="212.0" layoutY="15.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="90.0" text="For you" textAlignment="CENTER">
+                        <Button layoutX="475.0" layoutY="12.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="90.0" text="For you" textAlignment="CENTER">
                            <font>
                               <Font name="Lucida Sans Demibold Roman" size="12.0" />
                            </font></Button>
-                        <Button layoutX="405.0" layoutY="15.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="90.0" text="Liked" textAlignment="CENTER" />
-                        <Button layoutX="582.0" layoutY="15.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="90.0" text="History" textAlignment="CENTER" />
+                        <Button layoutX="666.0" layoutY="12.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="90.0" text="Liked" textAlignment="CENTER" />
+                        <Button layoutX="844.0" layoutY="12.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="90.0" text="History" textAlignment="CENTER" />
                      </children>
                   </AnchorPane>
-                  <TextField alignment="CENTER" layoutX="197.0" layoutY="36.0" prefHeight="36.0" prefWidth="476.0" promptText="Search" />
-                  <ImageView fitHeight="34.0" fitWidth="32.0" layoutX="632.0" layoutY="38.0" pickOnBounds="true" preserveRatio="true">
+                  <TextField alignment="CENTER" layoutX="250.0" layoutY="40.0" prefHeight="41.0" prefWidth="814.0" promptText="Search" />
+                  <ImageView fitHeight="34.0" fitWidth="32.0" layoutX="1020.0" layoutY="44.0" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@../../../search.png" />
                      </image>
                   </ImageView>
-                  <TableView fx:id="Discover_panel" layoutX="7.0" layoutY="150.0" prefHeight="394.0" prefWidth="749.0">
+                  <TableView fx:id="Discover_panel" layoutX="5.0" layoutY="150.0" prefHeight="520.0" prefWidth="1257.0">
                      <columns>
-                        <TableColumn fx:id="headline_discover" prefWidth="296.0" text="Headline" />
-                        <TableColumn fx:id="desc_discover" minWidth="0.0" prefWidth="279.0" text="Description" />
-                        <TableColumn fx:id="learn_more" prefWidth="187.0" text="learn more" />
+                        <TableColumn fx:id="headline_discover" prefWidth="308.0" text="Headline" />
+                        <TableColumn fx:id="desc_discover" minWidth="0.0" prefWidth="470.0" text="Description" />
+                        <TableColumn fx:id="learn_more" prefWidth="211.0" text="learn more" />
+                        <TableColumn fx:id="readColumn" prefWidth="158.0" resizable="false" text="Mark as read" />
+                        <TableColumn fx:id="likeColumn" prefWidth="89.0" resizable="false" text="Like" />
                      </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                      </columnResizePolicy>
                   </TableView>
-                  <Button fx:id="logout_button" layoutX="694.0" layoutY="33.0" mnemonicParsing="false" onAction="#log_out" prefHeight="41.0" prefWidth="43.0" />
-                  <ImageView fx:id="logout_img" disable="true" fitHeight="36.0" fitWidth="32.0" layoutX="702.0" layoutY="38.0" onMouseClicked="#log_out" pickOnBounds="true" preserveRatio="true">
+                  <Button fx:id="logout_button" layoutX="1182.0" layoutY="34.0" mnemonicParsing="false" onAction="#log_out" prefHeight="41.0" prefWidth="43.0" />
+                  <ImageView fx:id="logout_img" disable="true" fitHeight="36.0" fitWidth="32.0" layoutX="1190.0" layoutY="38.0" onMouseClicked="#log_out" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@../../../logout.png" />
                      </image>

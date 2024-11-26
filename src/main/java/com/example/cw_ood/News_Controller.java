@@ -79,6 +79,10 @@ public class News_Controller {
     public TableColumn<News, String> desc_discover; // TableColumn for description
     @FXML
     public TableColumn<News, String> learn_more;    // TableColumn for learn more
+    @FXML
+    private TableColumn<News, Void> readColumn;
+    @FXML
+    private TableColumn<News, Void> likeColumn;
 
     private MongoCollection<Document> newsCollection;
 
@@ -207,6 +211,9 @@ public class News_Controller {
         desc_discover.setCellValueFactory(new PropertyValueFactory<>("description"));
         learn_more.setCellValueFactory(new PropertyValueFactory<>("url"));
 
+        // Add buttons for actions
+        addActionButtons();
+
         learn_more.setCellFactory(tc -> new TableCell<>() {
             private final Hyperlink link = new Hyperlink();
 
@@ -293,12 +300,109 @@ public class News_Controller {
         for (Document doc : newsCollection.find()) {
             String title = doc.getString("title");
             String description = doc.getString("description");
-            String url = doc.getString("url"); // Fetch the URL
-            newsList.add(new News(title, description, url)); // Pass the URL to the News object
+            String url = doc.getString("url");
+            boolean isRead = doc.getBoolean("isRead", false);
+            boolean isLiked = doc.getBoolean("isLiked", false);
+
+            News news = new News(title, description, url);
+            news.setRead(isRead);
+            news.setLiked(isLiked);
+
+            newsList.add(news);
         }
 
-        // Set the fetched news list to the TableView
         Discover_panel.setItems(newsList);
+    }
+
+
+    //add button
+
+    private void addActionButtons() {
+        // "Mark as Read" Button Column
+        readColumn.setCellFactory(tc -> new TableCell<>() {
+            private final Button readButton = new Button("Mark as Read");
+
+            {
+                // Style button for "Read" state
+                readButton.setStyle("-fx-background-color: lightgray; -fx-text-fill: black;");
+
+                readButton.setOnAction(event -> {
+                    News news = getTableView().getItems().get(getIndex());
+                    news.setRead(true);
+                    updateNewsInDatabase(news); // Update in MongoDB
+                    refreshTable(); // Refresh the table
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    News news = getTableView().getItems().get(getIndex());
+                    if (news.isRead()) {
+                        readButton.setText("Read");
+                        readButton.setStyle("-fx-background-color: green; -fx-text-fill: white;");
+                        readButton.setDisable(true); // Disable after marking as read
+                    } else {
+                        readButton.setText("Mark as Read");
+                        readButton.setStyle("-fx-background-color: lightgray; -fx-text-fill: black;");
+                    }
+                    setGraphic(readButton);
+                }
+            }
+        });
+
+        // "Like" Button Column
+        likeColumn.setCellFactory(tc -> new TableCell<>() {
+            private final Button likeButton = new Button("Like");
+
+            {
+                likeButton.setStyle("-fx-background-color: lightblue; -fx-text-fill: black;");
+
+                likeButton.setOnAction(event -> {
+                    News news = getTableView().getItems().get(getIndex());
+                    news.setLiked(!news.isLiked()); // Toggle the liked status
+                    updateNewsInDatabase(news); // Update in MongoDB
+                    refreshTable(); // Refresh the table
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    News news = getTableView().getItems().get(getIndex());
+                    if (news.isLiked()) {
+                        likeButton.setText("Unlike");
+                        likeButton.setStyle("-fx-background-color: red; -fx-text-fill: white;");
+                    } else {
+                        likeButton.setText("Like");
+                        likeButton.setStyle("-fx-background-color: lightblue; -fx-text-fill: black;");
+                    }
+                    setGraphic(likeButton);
+                }
+            }
+        });
+    }
+
+
+    private void updateNewsInDatabase(News news) {
+        // Update the read/like status in MongoDB
+        Document updatedDocument = new Document("title", news.getTitle())
+                .append("description", news.getDescription())
+                .append("url", news.getUrl())
+                .append("isRead", news.isRead())
+                .append("isLiked", news.isLiked());
+
+        newsCollection.replaceOne(new Document("title", news.getTitle()), updatedDocument);
+    }
+
+    private void refreshTable() {
+        fetchNewsFromDatabase(); // Re-fetch data to update the TableView
     }
 
 
