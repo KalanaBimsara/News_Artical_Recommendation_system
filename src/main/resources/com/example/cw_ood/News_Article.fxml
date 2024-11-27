@@ -144,7 +144,7 @@
                   </Pane>
                   <AnchorPane fx:id="nav_panel" layoutX="3.0" layoutY="91.0" prefHeight="55.0" prefWidth="1254.0">
                      <children>
-                        <Button layoutX="298.0" layoutY="12.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="90.0" text="Home" textAlignment="CENTER">
+                        <Button fx:id="home_button" layoutX="298.0" layoutY="12.0" mnemonicParsing="false" onAction="#Show_discover" prefHeight="26.0" prefWidth="90.0" text="Home" textAlignment="CENTER">
                            <font>
                               <Font name="Lucida Sans Demibold Roman" size="12.0" />
                            </font></Button>
@@ -152,8 +152,8 @@
                            <font>
                               <Font name="Lucida Sans Demibold Roman" size="12.0" />
                            </font></Button>
-                        <Button layoutX="666.0" layoutY="12.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="90.0" text="Liked" textAlignment="CENTER" />
-                        <Button layoutX="844.0" layoutY="12.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="90.0" text="History" textAlignment="CENTER" />
+                        <Button fx:id="liked_button" layoutX="666.0" layoutY="12.0" mnemonicParsing="false" onAction="#Show_liked" prefHeight="25.0" prefWidth="90.0" text="Liked" textAlignment="CENTER" />
+                        <Button fx:id="history_button" layoutX="844.0" layoutY="12.0" mnemonicParsing="false" onAction="#Show_history" prefHeight="25.0" prefWidth="90.0" text="History" textAlignment="CENTER" />
                      </children>
                   </AnchorPane>
                   <TextField alignment="CENTER" layoutX="250.0" layoutY="40.0" prefHeight="41.0" prefWidth="814.0" promptText="Search" />
@@ -183,6 +183,26 @@
                         <Cursor fx:constant="HAND" />
                      </cursor>
                   </ImageView>
+                  <TableView fx:id="history_table" layoutX="5.0" layoutY="150.0" prefHeight="520.0" prefWidth="1257.0" visible="false">
+                     <columns>
+                        <TableColumn fx:id="headline_history" prefWidth="308.0" text="Headline" />
+                        <TableColumn fx:id="description_history" minWidth="0.0" prefWidth="470.0" text="Description" />
+                        <TableColumn fx:id="learnmore_history" prefWidth="211.0" text="learn more" />
+                     </columns>
+                     <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                     </columnResizePolicy>
+                  </TableView>
+                  <TableView fx:id="like_table" layoutX="5.0" layoutY="150.0" prefHeight="520.0" prefWidth="1257.0" visible="false">
+                     <columns>
+                        <TableColumn fx:id="headline_like" prefWidth="308.0" text="Headline" />
+                        <TableColumn fx:id="desciption_like" minWidth="0.0" prefWidth="470.0" text="Description" />
+                        <TableColumn fx:id="learnmore_like" prefWidth="211.0" text="learn more" />
+                     </columns>
+                     <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                     </columnResizePolicy>
+                  </TableView>
                </children>
             </AnchorPane>
          </children>

@@ -2,6 +2,7 @@ package com.example.cw_ood;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.ReplaceOptions;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -15,7 +16,8 @@ import org.bson.Document;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TableCell;
 
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class News_Controller {
@@ -68,6 +70,22 @@ public class News_Controller {
     @FXML
     public Button login_button;
     @FXML
+    public TableView history_table;
+    @FXML
+    public TableView like_table;
+    @FXML
+    public TableColumn headline_history;
+    @FXML
+    public TableColumn description_history;
+    @FXML
+    public TableColumn learnmore_history;
+    @FXML
+    public TableColumn headline_like;
+    @FXML
+    public TableColumn desciption_like;
+    @FXML
+    public TableColumn learnmore_like;
+    @FXML
     private Button logout_button;
     @FXML
     private ImageView logout_img;
@@ -85,17 +103,22 @@ public class News_Controller {
     private TableColumn<News, Void> readColumn;
     @FXML
     private TableColumn<News, Void> likeColumn;
+    @FXML
+
 
     private MongoCollection<Document> newsCollection;
+    private MongoCollection<Document> readHistoryCollection;
+    private MongoCollection<Document> likedArticlesCollection;
 
-    public void setDatabase(MongoDatabase database) {
+    private String currentUser;
+    private UserService userService;
+
+    /*public void setDatabase(MongoDatabase database) {
         this.newsCollection = database.getCollection("News");
         fetchNewsFromDatabase(); // Call this method after initializing the collection
         System.out.println("newsCollection initialized: " + (this.newsCollection != null));
 
-    }
-
-    private UserService userService;
+    }*/
 
 
     public News_Controller() {
@@ -107,29 +130,33 @@ public class News_Controller {
     public void Login_to_system(ActionEvent actionEvent) {
         String username = Login_username_field.getText();
         String password = login_password_field.getText();
-        System.out.println("Username: " + username + ", Password: " + password);
 
         if (userService.validateLogin(username, password)) {
-            // Successful login
+            currentUser = username; // Set the current user
+            // Proceed with setup
+            initialize();
             Log_in_panel.setVisible(false);
             Login_field.setVisible(false);
             Sign_up_panel.setVisible(false);
             Password_reset.setVisible(false);
             User_dashboard.setVisible(true);
             HI_user.setText("Hi, " + username);
+            Discover_panel.getItems().clear();
+            fetchNewsFromDatabase(); // Load personalized news
+            addActionButtons(currentUser); // Add buttons
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Login Successful");
             alert.setHeaderText("Welcome, " + username + "!");
             alert.showAndWait();
         } else {
-            // Failed login
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
             alert.setHeaderText("Invalid username or password");
             alert.showAndWait();
         }
     }
+
     public void SignUp(ActionEvent actionEvent) {
         Login_field.setVisible(false);
         Password_reset.setVisible(false);
@@ -149,6 +176,24 @@ public class News_Controller {
         Log_in_panel.setVisible(true);
         Login_field.setVisible(true);
         User_dashboard.setVisible(false);
+    }
+    public void Show_history(ActionEvent actionEvent) {
+        history_table.setVisible(true);
+        Discover_panel.setVisible(false);
+        like_table.setVisible(false);
+        loadHistoryTable();
+    }
+    public void Show_liked(ActionEvent actionEvent) {
+        history_table.setVisible(false);
+        Discover_panel.setVisible(false);
+        like_table.setVisible(true);
+        loadLikedTable();
+    }
+    public void Show_discover(ActionEvent actionEvent) {
+        history_table.setVisible(false);
+        Discover_panel.setVisible(true);
+        like_table.setVisible(false);
+
     }
 
 
@@ -205,16 +250,40 @@ public class News_Controller {
         }
     }
 
+
+
     //load news from db
     @FXML
     public void initialize() {
-        // Set up TableColumn bindings
         headline_discover.setCellValueFactory(new PropertyValueFactory<>("title"));
         desc_discover.setCellValueFactory(new PropertyValueFactory<>("description"));
         learn_more.setCellValueFactory(new PropertyValueFactory<>("url"));
 
-        // Add buttons for actions
-        addActionButtons();
+        // Initialize history table columns
+        headline_history.setCellValueFactory(new PropertyValueFactory<>("title"));
+        description_history.setCellValueFactory(new PropertyValueFactory<>("description"));
+        learnmore_history.setCellValueFactory(new PropertyValueFactory<>("url"));
+
+        // Initialize liked table columns
+        headline_like.setCellValueFactory(new PropertyValueFactory<>("title"));
+        desciption_like.setCellValueFactory(new PropertyValueFactory<>("description"));
+        learnmore_like.setCellValueFactory(new PropertyValueFactory<>("url"));
+
+
+        // Call addActionButtons with current user & Load user-specific history and liked articles
+        if (currentUser != null) {
+            addActionButtons(currentUser);
+            loadHistoryTable();
+            loadLikedTable();
+        }
+
+        // Ensure columns are added to the TableView
+        if (!Discover_panel.getColumns().contains(readColumn)) {
+            Discover_panel.getColumns().add(readColumn);
+        }
+        if (!Discover_panel.getColumns().contains(likeColumn)) {
+            Discover_panel.getColumns().add(likeColumn);
+        }
 
         learn_more.setCellFactory(tc -> new TableCell<>() {
             private final Hyperlink link = new Hyperlink();
@@ -247,13 +316,12 @@ public class News_Controller {
             }
         });
 
-
         // Enable text wrapping for the description column
         desc_discover.setCellFactory(tc -> new TableCell<>() {
             private final Text text = new Text();
 
             {
-                text.wrappingWidthProperty().bind(tc.widthProperty().subtract(10)); // Adjust for padding
+                text.wrappingWidthProperty().bind(tc.widthProperty().subtract(10));
                 setGraphic(text);
                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             }
@@ -273,7 +341,7 @@ public class News_Controller {
             private final Text text = new Text();
 
             {
-                text.wrappingWidthProperty().bind(tc.widthProperty().subtract(10)); // Adjust for padding
+                text.wrappingWidthProperty().bind(tc.widthProperty().subtract(10));
                 setGraphic(text);
                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             }
@@ -288,9 +356,8 @@ public class News_Controller {
                 }
             }
         });
-
-
     }
+
 
     private void fetchNewsFromDatabase() {
         if (newsCollection == null) {
@@ -331,9 +398,7 @@ public class News_Controller {
 
     //add button
 
-    private void addActionButtons() {
-        String currentUser = HI_user.getText().replace("Hi, ", "").trim(); // Get the current username
-
+    private void addActionButtons(String currentUser) {
         // "Mark as Read" Button Column
         readColumn.setCellFactory(tc -> new TableCell<>() {
             private final Button readButton = new Button("Mark as Read");
@@ -341,9 +406,9 @@ public class News_Controller {
             {
                 readButton.setOnAction(event -> {
                     News news = getTableView().getItems().get(getIndex());
-                    news.setRead(currentUser, true);
-                    updateNewsInDatabase(currentUser, news); // Update for current user in MongoDB
-                    refreshTable(); // Refresh the table
+                    markAsRead(currentUser, news); // Save to ReadHistory collection
+                    readButton.setStyle("-fx-background-color: green;");
+                    readButton.setDisable(true); // Disable once marked as read
                 });
             }
 
@@ -353,13 +418,11 @@ public class News_Controller {
                 if (empty) {
                     setGraphic(null);
                 } else {
-                    News news = getTableView().getItems().get(getIndex());
                     setGraphic(readButton);
-                    readButton.setDisable(news.isRead(currentUser));
-                    readButton.setStyle(news.isRead(currentUser) ? "-fx-background-color: green;" : "");
                 }
             }
         });
+
 
         // "Like" Button Column
         likeColumn.setCellFactory(tc -> new TableCell<>() {
@@ -368,9 +431,10 @@ public class News_Controller {
             {
                 likeButton.setOnAction(event -> {
                     News news = getTableView().getItems().get(getIndex());
-                    news.setLiked(currentUser, !news.isLiked(currentUser));
-                    updateNewsInDatabase(currentUser, news); // Update for current user in MongoDB
-                    refreshTable(); // Refresh the table
+                    toggleLike(currentUser, news); // Save or remove from LikedArticles collection
+                    boolean isLiked = likeButton.getText().equals("Unlike");
+                    likeButton.setText(isLiked ? "Like" : "Unlike");
+                    likeButton.setStyle(isLiked ? "-fx-background-color: gray;" : "-fx-background-color: red;");
                 });
             }
 
@@ -380,15 +444,89 @@ public class News_Controller {
                 if (empty) {
                     setGraphic(null);
                 } else {
-                    News news = getTableView().getItems().get(getIndex());
                     setGraphic(likeButton);
-                    likeButton.setText(news.isLiked(currentUser) ? "Unlike" : "Like");
-                    likeButton.setStyle(news.isLiked(currentUser) ? "-fx-background-color: red;" : "");
                 }
             }
         });
+
+
     }
 
+
+
+    public void setDatabase(MongoDatabase database) {
+        this.newsCollection = database.getCollection("News");
+        this.readHistoryCollection = database.getCollection("ReadHistory");
+        this.likedArticlesCollection = database.getCollection("LikedArticles");
+        fetchNewsFromDatabase(); // Initialize news collection
+        System.out.println("newsCollection initialized: " + (this.newsCollection != null));
+    }
+
+    // Mark article as read
+    private void markAsRead(String username, News news) {
+        Document userRecord = readHistoryCollection.find(new Document("username", username)).first();
+        if (userRecord == null) {
+            userRecord = new Document("username", username).append("readArticles", new ArrayList<>());
+        }
+
+        // Avoid duplicates
+        List<Document> readArticles = userRecord.getList("readArticles", Document.class);
+        if (readArticles.stream().noneMatch(article -> article.getString("url").equals(news.getUrl()))) {
+            readArticles.add(new Document("title", news.getTitle())
+                    .append("description", news.getDescription())
+                    .append("url", news.getUrl())
+                    .append("timestamp", java.time.Instant.now().toString()));
+        }
+
+        // Update the database
+        readHistoryCollection.replaceOne(new Document("username", username), userRecord, new ReplaceOptions().upsert(true));
+    }
+
+    // Mark or unmark article as liked
+    private void toggleLike(String username, News news) {
+        Document userRecord = likedArticlesCollection.find(new Document("username", username)).first();
+        if (userRecord == null) {
+            userRecord = new Document("username", username).append("likedArticles", new ArrayList<>());
+        }
+
+        // Check if already liked
+        List<Document> likedArticles = userRecord.getList("likedArticles", Document.class);
+        Optional<Document> existingArticle = likedArticles.stream()
+                .filter(article -> article.getString("url").equals(news.getUrl()))
+                .findFirst();
+
+        if (existingArticle.isPresent()) {
+            // Unlike: Remove the article
+            likedArticles.remove(existingArticle.get());
+        } else {
+            // Like: Add the article
+            likedArticles.add(new Document("title", news.getTitle())
+                    .append("url", news.getUrl())
+                    .append("description", news.getDescription())
+                    .append("timestamp", java.time.Instant.now().toString()));
+        }
+
+        // Update the database
+        likedArticlesCollection.replaceOne(new Document("username", username), userRecord, new ReplaceOptions().upsert(true));
+    }
+
+    private List<String> getUserReadArticles(String username) {
+        Document userRecord = readHistoryCollection.find(new Document("username", username)).first();
+        if (userRecord == null) return Collections.emptyList();
+        return userRecord.getList("readArticles", Document.class)
+                .stream()
+                .map(article -> article.getString("url"))
+                .collect(Collectors.toList());
+    }
+
+    private List<String> getUserLikedArticles(String username) {
+        Document userRecord = likedArticlesCollection.find(new Document("username", username)).first();
+        if (userRecord == null) return Collections.emptyList();
+        return userRecord.getList("likedArticles", Document.class)
+                .stream()
+                .map(article -> article.getString("url"))
+                .collect(Collectors.toList());
+    }
 
 
     private void updateNewsInDatabase(String username, News news) {
@@ -415,6 +553,47 @@ public class News_Controller {
 
     private void refreshTable() {
         fetchNewsFromDatabase(); // Re-fetch data to update the TableView
+    }
+
+
+    private void loadHistoryTable() {
+        ObservableList<News> historyList = FXCollections.observableArrayList();
+        List<Document> readArticles = getReadArticlesFromDatabase(currentUser);
+
+        for (Document doc : readArticles) {
+            String title = doc.getString("title");
+            String description = doc.getString("description");
+            String url = doc.getString("url");
+            historyList.add(new News(title, description, url));
+        }
+
+        history_table.setItems(historyList);
+    }
+
+    private void loadLikedTable() {
+        ObservableList<News> likedList = FXCollections.observableArrayList();
+        List<Document> likedArticles = getLikedArticlesFromDatabase(currentUser);
+
+        for (Document doc : likedArticles) {
+            String title = doc.getString("title");
+            String description = doc.getString("description");
+            String url = doc.getString("url");
+            likedList.add(new News(title, description, url));
+        }
+
+        like_table.setItems(likedList);
+    }
+
+    private List<Document> getReadArticlesFromDatabase(String username) {
+        Document userRecord = readHistoryCollection.find(new Document("username", username)).first();
+        if (userRecord == null) return Collections.emptyList();
+        return userRecord.getList("readArticles", Document.class);
+    }
+
+    private List<Document> getLikedArticlesFromDatabase(String username) {
+        Document userRecord = likedArticlesCollection.find(new Document("username", username)).first();
+        if (userRecord == null) return Collections.emptyList();
+        return userRecord.getList("likedArticles", Document.class);
     }
 
 
