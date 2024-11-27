@@ -1,18 +1,39 @@
 package com.example.cw_ood;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class News {
     private String title;
     private String description;
     private String url;
-    private boolean isRead; // Track if the news is marked as read
-    private boolean isLiked; // Track if the news is liked
+    private Map<String, Boolean> readStates; // Stores isRead for each user
+    private Map<String, Boolean> likeStates; // Stores isLiked for each user
 
+    // Constructor
     public News(String title, String description, String url) {
         this.title = title;
         this.description = description;
         this.url = url;
-        this.isRead = false;
-        this.isLiked = false;
+        this.readStates = new HashMap<>();
+        this.likeStates = new HashMap<>();
+    }
+
+    // Getters and Setters
+    public boolean isRead(String username) {
+        return readStates.getOrDefault(username, false);
+    }
+
+    public void setRead(String username, boolean isRead) {
+        readStates.put(username, isRead);
+    }
+
+    public boolean isLiked(String username) {
+        return likeStates.getOrDefault(username, false);
+    }
+
+    public void setLiked(String username, boolean isLiked) {
+        likeStates.put(username, isLiked);
     }
 
     public String getTitle() {
@@ -27,20 +48,11 @@ public class News {
         return url;
     }
 
-    public boolean isRead() {
-        return isRead;
+    public Map<String, Boolean> getReadStates() {
+        return readStates;
     }
 
-    public void setRead(boolean isRead) {
-        this.isRead = isRead;
-    }
-
-    public boolean isLiked() {
-        return isLiked;
-    }
-
-    public void setLiked(boolean isLiked) {
-        this.isLiked = isLiked;
+    public Map<String, Boolean> getLikeStates() {
+        return likeStates;
     }
 }
-

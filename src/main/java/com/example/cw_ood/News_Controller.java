@@ -15,6 +15,8 @@ import org.bson.Document;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TableCell;
 
+import java.util.Map;
+
 
 public class News_Controller {
     @FXML
@@ -301,12 +303,23 @@ public class News_Controller {
             String title = doc.getString("title");
             String description = doc.getString("description");
             String url = doc.getString("url");
-            boolean isRead = doc.getBoolean("isRead", false);
-            boolean isLiked = doc.getBoolean("isLiked", false);
+            Document readStatesDoc = doc.get("readStates", Document.class);
+            Document likeStatesDoc = doc.get("likeStates", Document.class);
 
             News news = new News(title, description, url);
-            news.setRead(isRead);
-            news.setLiked(isLiked);
+
+            // Populate user-specific states
+            if (readStatesDoc != null) {
+                for (String user : readStatesDoc.keySet()) {
+                    news.setRead(user, readStatesDoc.getBoolean(user));
+                }
+            }
+
+            if (likeStatesDoc != null) {
+                for (String user : likeStatesDoc.keySet()) {
+                    news.setLiked(user, likeStatesDoc.getBoolean(user));
+                }
+            }
 
             newsList.add(news);
         }
@@ -315,21 +328,21 @@ public class News_Controller {
     }
 
 
+
     //add button
 
     private void addActionButtons() {
+        String currentUser = HI_user.getText().replace("Hi, ", "").trim(); // Get the current username
+
         // "Mark as Read" Button Column
         readColumn.setCellFactory(tc -> new TableCell<>() {
             private final Button readButton = new Button("Mark as Read");
 
             {
-                // Style button for "Read" state
-                readButton.setStyle("-fx-background-color: lightgray; -fx-text-fill: black;");
-
                 readButton.setOnAction(event -> {
                     News news = getTableView().getItems().get(getIndex());
-                    news.setRead(true);
-                    updateNewsInDatabase(news); // Update in MongoDB
+                    news.setRead(currentUser, true);
+                    updateNewsInDatabase(currentUser, news); // Update for current user in MongoDB
                     refreshTable(); // Refresh the table
                 });
             }
@@ -341,15 +354,9 @@ public class News_Controller {
                     setGraphic(null);
                 } else {
                     News news = getTableView().getItems().get(getIndex());
-                    if (news.isRead()) {
-                        readButton.setText("Read");
-                        readButton.setStyle("-fx-background-color: green; -fx-text-fill: white;");
-                        readButton.setDisable(true); // Disable after marking as read
-                    } else {
-                        readButton.setText("Mark as Read");
-                        readButton.setStyle("-fx-background-color: lightgray; -fx-text-fill: black;");
-                    }
                     setGraphic(readButton);
+                    readButton.setDisable(news.isRead(currentUser));
+                    readButton.setStyle(news.isRead(currentUser) ? "-fx-background-color: green;" : "");
                 }
             }
         });
@@ -359,12 +366,10 @@ public class News_Controller {
             private final Button likeButton = new Button("Like");
 
             {
-                likeButton.setStyle("-fx-background-color: lightblue; -fx-text-fill: black;");
-
                 likeButton.setOnAction(event -> {
                     News news = getTableView().getItems().get(getIndex());
-                    news.setLiked(!news.isLiked()); // Toggle the liked status
-                    updateNewsInDatabase(news); // Update in MongoDB
+                    news.setLiked(currentUser, !news.isLiked(currentUser));
+                    updateNewsInDatabase(currentUser, news); // Update for current user in MongoDB
                     refreshTable(); // Refresh the table
                 });
             }
@@ -376,30 +381,37 @@ public class News_Controller {
                     setGraphic(null);
                 } else {
                     News news = getTableView().getItems().get(getIndex());
-                    if (news.isLiked()) {
-                        likeButton.setText("Unlike");
-                        likeButton.setStyle("-fx-background-color: red; -fx-text-fill: white;");
-                    } else {
-                        likeButton.setText("Like");
-                        likeButton.setStyle("-fx-background-color: lightblue; -fx-text-fill: black;");
-                    }
                     setGraphic(likeButton);
+                    likeButton.setText(news.isLiked(currentUser) ? "Unlike" : "Like");
+                    likeButton.setStyle(news.isLiked(currentUser) ? "-fx-background-color: red;" : "");
                 }
             }
         });
     }
 
 
-    private void updateNewsInDatabase(News news) {
-        // Update the read/like status in MongoDB
+
+    private void updateNewsInDatabase(String username, News news) {
+        // Update the user-specific read/like states in MongoDB
+        Document readStatesDoc = new Document();
+        for (Map.Entry<String, Boolean> entry : news.getReadStates().entrySet()) {
+            readStatesDoc.append(entry.getKey(), entry.getValue());
+        }
+
+        Document likeStatesDoc = new Document();
+        for (Map.Entry<String, Boolean> entry : news.getLikeStates().entrySet()) {
+            likeStatesDoc.append(entry.getKey(), entry.getValue());
+        }
+
         Document updatedDocument = new Document("title", news.getTitle())
                 .append("description", news.getDescription())
                 .append("url", news.getUrl())
-                .append("isRead", news.isRead())
-                .append("isLiked", news.isLiked());
+                .append("readStates", readStatesDoc)
+                .append("likeStates", likeStatesDoc);
 
         newsCollection.replaceOne(new Document("title", news.getTitle()), updatedDocument);
     }
+
 
     private void refreshTable() {
         fetchNewsFromDatabase(); // Re-fetch data to update the TableView
