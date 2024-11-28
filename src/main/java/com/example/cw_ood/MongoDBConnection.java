@@ -31,4 +31,8 @@ public class MongoDBConnection {
         }
         return database;
     }
+
+    public static void close() {
+
+    }
 }

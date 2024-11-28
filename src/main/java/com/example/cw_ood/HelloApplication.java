@@ -12,38 +12,51 @@ import java.util.Objects;
 
 public class HelloApplication extends Application {
     @Override
-    public void start(Stage stage) throws Exception {
-        // Create MongoDB connection and UserService
-        MongoDatabase database = MongoDBConnection.getDatabase();
-        UserService userService = new UserService(database);
+    public void start(Stage stage) {
+        try {
+            // Create MongoDB connection and UserService
+            MongoDatabase database = MongoDBConnection.getDatabase();
+            UserService userService = new UserService(database);
 
+            // Fetch news with error handling
+            NewsFetcher newsFetcher = new NewsFetcher(database);
+            try {
+                newsFetcher.fetchAndCategorizeNews();
+            } catch (Exception e) {
+                System.err.println("Failed to fetch and categorize news: " + e.getMessage());
+            }
 
-        // Fetch news
-        NewsFetcher newsFetcher = new NewsFetcher(database);
-        newsFetcher.fetchAndCategorizeNews();
+            // Load FXML
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/cw_ood/News_Article.fxml"));
+            Parent root = fxmlLoader.load();
 
-        // Load FXML
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/cw_ood/News_Article.fxml"));
-        Parent root = fxmlLoader.load();
+            // Inject dependencies into the controller
+            News_Controller controller = fxmlLoader.getController();
+            controller.setUserService(userService);
+            controller.setDatabase(database);
 
-        // Get the controller and inject UserService
-        News_Controller controller = fxmlLoader.getController();
-        controller.setUserService(userService);
-        // Initialize MongoDB in the controller
-        controller.setDatabase(database);
+            // Set up the scene
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/stage_icon.png"))));
+            stage.setTitle("News Article Application");
+            stage.show();
 
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Application failed to start: " + e.getMessage());
+        }
+    }
 
-
-
-        // Set the scene
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
-        stage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/stage_icon.png"))));
-        stage.setTitle("News Article Application");
-        stage.show();
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+        MongoDBConnection.close(); // Clean up resources if needed
+        System.out.println("Application closed gracefully.");
     }
 
     public static void main(String[] args) {
         launch();
     }
 }
+

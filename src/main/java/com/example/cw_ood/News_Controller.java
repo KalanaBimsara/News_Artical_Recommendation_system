@@ -86,6 +86,12 @@ public class News_Controller {
     @FXML
     public TableColumn learnmore_like;
     @FXML
+    public Button home_button;
+    @FXML
+    public Button liked_button;
+    @FXML
+    public Button history_button;
+    @FXML
     private Button logout_button;
     @FXML
     private ImageView logout_img;
@@ -106,6 +112,15 @@ public class News_Controller {
     @FXML
     private TableColumn<News, Void> likeColumn;
     @FXML
+    public TableView<News> recommendations_table;
+    @FXML
+    public TableColumn<News, String> recommendations_headline;
+    @FXML
+    public TableColumn<News, String> recommendations_description;
+    @FXML
+    public TableColumn<News, String> recommendations_learnmore;
+    @FXML
+    public TableColumn<News, String> recommendations_cat;
 
 
     private MongoCollection<Document> categorized_newsCollection;
@@ -114,20 +129,12 @@ public class News_Controller {
 
     private String currentUser;
     private UserService userService;
-
-    /*public void setDatabase(MongoDatabase database) {
-        this.newsCollection = database.getCollection("News");
-        fetchNewsFromDatabase(); // Call this method after initializing the collection
-        System.out.println("newsCollection initialized: " + (this.newsCollection != null));
-
-    }*/
-
+    private MongoDatabase database;
 
     public News_Controller() {
         // Initialize optional defaults if necessary
         this.userService = null; // Will be set later by setter
     }
-
 
     public void Login_to_system(ActionEvent actionEvent) {
         String username = Login_username_field.getText();
@@ -183,20 +190,55 @@ public class News_Controller {
         history_table.setVisible(true);
         Discover_panel.setVisible(false);
         like_table.setVisible(false);
+        recommendations_table.setVisible(false);
         loadHistoryTable();
     }
     public void Show_liked(ActionEvent actionEvent) {
         history_table.setVisible(false);
         Discover_panel.setVisible(false);
         like_table.setVisible(true);
+        recommendations_table.setVisible(false);
         loadLikedTable();
     }
     public void Show_discover(ActionEvent actionEvent) {
         history_table.setVisible(false);
         Discover_panel.setVisible(true);
         like_table.setVisible(false);
+        recommendations_table.setVisible(false);
 
     }
+    public void Show_recommendations(ActionEvent actionEvent) {
+        if (database == null) {
+            throw new IllegalStateException("Database is not initialized!");
+        }
+
+        recommendations_table.setVisible(true);
+        Discover_panel.setVisible(false);
+        history_table.setVisible(false);
+        like_table.setVisible(false);
+
+        RecommendationEngine recommendationEngine = new RecommendationEngine(database);
+        List<Document> recommendedDocs = recommendationEngine.recommendArticles(currentUser, 10);
+
+        // Debugging: Log the recommended documents
+        System.out.println("Recommended Documents: " + recommendedDocs);
+
+        ObservableList<News> recommendations = FXCollections.observableArrayList();
+        for (Document doc : recommendedDocs) {
+            String title = doc.getString("title");
+            String description = doc.getString("description");
+            String url = doc.getString("url");
+            String category = doc.getString("category");
+            recommendations.add(new News(title, description, url, category));
+        }
+
+        recommendations_table.setItems(recommendations);
+        recommendations_headline.setCellValueFactory(new PropertyValueFactory<>("title"));
+        recommendations_description.setCellValueFactory(new PropertyValueFactory<>("description"));
+        recommendations_learnmore.setCellValueFactory(new PropertyValueFactory<>("url"));
+        recommendations_cat.setCellValueFactory(new PropertyValueFactory<>("category"));
+    }
+
 
 
     @FXML
@@ -446,6 +488,7 @@ public class News_Controller {
 
 
     public void setDatabase(MongoDatabase database) {
+        this.database = database;
         this.categorized_newsCollection = database.getCollection("categorized_news");
         this.readHistoryCollection = database.getCollection("ReadHistory");
         this.likedArticlesCollection = database.getCollection("LikedArticles");
@@ -490,10 +533,11 @@ public class News_Controller {
             // Unlike: Remove the article
             likedArticles.remove(existingArticle.get());
         } else {
-            // Like: Add the article
+            // Like: Add the article with category
             likedArticles.add(new Document("title", news.getTitle())
-                    .append("url", news.getUrl())
                     .append("description", news.getDescription())
+                    .append("url", news.getUrl())
+                    .append("category", news.getCategory()) // Ensure category is added
                     .append("timestamp", java.time.Instant.now().toString()));
         }
 
@@ -501,50 +545,6 @@ public class News_Controller {
         likedArticlesCollection.replaceOne(new Document("username", username), userRecord, new ReplaceOptions().upsert(true));
     }
 
-    /*private List<String> getUserReadArticles(String username) {
-        Document userRecord = readHistoryCollection.find(new Document("username", username)).first();
-        if (userRecord == null) return Collections.emptyList();
-        return userRecord.getList("readArticles", Document.class)
-                .stream()
-                .map(article -> article.getString("url"))
-                .collect(Collectors.toList());
-    }
-
-    private List<String> getUserLikedArticles(String username) {
-        Document userRecord = likedArticlesCollection.find(new Document("username", username)).first();
-        if (userRecord == null) return Collections.emptyList();
-        return userRecord.getList("likedArticles", Document.class)
-                .stream()
-                .map(article -> article.getString("url"))
-                .collect(Collectors.toList());
-    }
-
-
-    private void updateNewsInDatabase(String username, News news) {
-        // Update the user-specific read/like states in MongoDB
-        Document readStatesDoc = new Document();
-        for (Map.Entry<String, Boolean> entry : news.getReadStates().entrySet()) {
-            readStatesDoc.append(entry.getKey(), entry.getValue());
-        }
-
-        Document likeStatesDoc = new Document();
-        for (Map.Entry<String, Boolean> entry : news.getLikeStates().entrySet()) {
-            likeStatesDoc.append(entry.getKey(), entry.getValue());
-        }
-
-        Document updatedDocument = new Document("title", news.getTitle())
-                .append("description", news.getDescription())
-                .append("url", news.getUrl())
-                .append("readStates", readStatesDoc)
-                .append("likeStates", likeStatesDoc);
-
-        newsCollection.replaceOne(new Document("title", news.getTitle()), updatedDocument);
-    }
-
-
-    private void refreshTable() {
-        fetchNewsFromDatabase(); // Re-fetch data to update the TableView
-    }*/
 
 
     private void loadHistoryTable() {
@@ -593,10 +593,82 @@ public class News_Controller {
 
     private List<Document> getLikedArticlesFromDatabase(String username) {
         Document userRecord = likedArticlesCollection.find(new Document("username", username)).first();
-        if (userRecord == null) return Collections.emptyList();
+        if (userRecord == null || userRecord.getList("likedArticles", Document.class) == null) {
+            return Collections.emptyList();
+        }
         return userRecord.getList("likedArticles", Document.class);
     }
 
 
+
+
+
+
+
+    public class RecommendationEngine {
+        private final MongoDatabase database;
+
+        public RecommendationEngine(MongoDatabase database) {
+            this.database = database;
+        }
+
+        public List<Document> recommendArticles(String username, int limit) {
+            List<Document> likedArticles = getLikedArticlesFromDatabase(username);
+
+            // Debugging: Check liked articles
+            System.out.println("Liked Articles for user " + username + ": " + likedArticles);
+            System.out.println("Liked Articles: " + likedArticles);
+            likedArticles.stream()
+                    .filter(doc -> doc.getString("category") != null)
+                    .forEach(doc -> System.out.println("Category: " + doc.getString("category")));
+
+
+            // Ensure likedArticles is not null
+            if (likedArticles == null || likedArticles.isEmpty()) {
+                System.out.println("No liked articles found for user: " + username);
+                return Collections.emptyList(); // Return an empty list or general recommendations
+            }
+
+            // Filter and collect categories
+            Map<String, Long> categoryCounts = likedArticles.stream()
+                    .filter(doc -> doc.getString("category") != null)
+                    .collect(Collectors.groupingBy(doc -> doc.getString("category"), Collectors.counting()));
+
+            // Debugging: Check category counts
+            System.out.println("Category Counts: " + categoryCounts);
+
+            // Get top categories
+            List<String> topCategories = categoryCounts.entrySet().stream()
+                    .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue()))
+                    .limit(3)
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
+
+            // Debugging: Check top categories
+            System.out.println("Top Categories: " + topCategories);
+
+            // Fetch recommendations
+            List<Document> recommendations = new ArrayList<>();
+            for (String category : topCategories) {
+                categorized_newsCollection.find(new Document("category", category))
+                        .limit(limit)
+                        .into(recommendations);
+            }
+
+            // Debugging: Check recommendations
+            System.out.println("Recommendations: " + recommendations);
+
+            return recommendations;
+        }
+
+
+
+
+        private List<Document> getArticlesFromCollection(MongoCollection<Document> collection, String username) {
+            Document userRecord = collection.find(new Document("username", username)).first();
+            if (userRecord == null) return Collections.emptyList();
+            return userRecord.getList("readArticles", Document.class);
+        }
+    }
 
 }
