@@ -662,13 +662,11 @@ public class News_Controller {
         }
 
 
-
-
-        private List<Document> getArticlesFromCollection(MongoCollection<Document> collection, String username) {
+        /*private List<Document> getArticlesFromCollection(MongoCollection<Document> collection, String username) {
             Document userRecord = collection.find(new Document("username", username)).first();
             if (userRecord == null) return Collections.emptyList();
             return userRecord.getList("readArticles", Document.class);
-        }
+        }*/
     }
 
 }

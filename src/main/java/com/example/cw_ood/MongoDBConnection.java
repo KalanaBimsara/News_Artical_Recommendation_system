@@ -8,7 +8,7 @@ import com.mongodb.client.MongoDatabase;
 public class MongoDBConnection {
     private static MongoClient mongoClient; // MongoClient instance
     private static MongoDatabase database; // Database instance
-    private static final String CONNECTION_STRING = "mongodb://localhost:27017"; // MongoDB connection string
+    private static final String CONNECTION_STRING = "mongodb+srv://kalanabimsara8:y09LYInOngyG4bgV@ooddb.b6kvb.mongodb.net/"; // MongoDB connection string
     private static final String DATABASE_NAME = "prodatabase"; // Database name
 
     // Static method to get the database instance
