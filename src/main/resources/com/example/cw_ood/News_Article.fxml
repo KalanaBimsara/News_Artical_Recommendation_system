@@ -21,7 +21,7 @@
    <children>
       <AnchorPane prefHeight="674.0" prefWidth="1268.0">
          <children>
-            <AnchorPane fx:id="Log_in_panel" layoutY="116.0" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="674.0" prefWidth="1268.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <AnchorPane fx:id="Log_in_panel" layoutY="116.0" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="674.0" prefWidth="1268.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <children>
                   <ImageView fitHeight="233.0" fitWidth="200.0" layoutX="348.0" layoutY="259.0" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="289.0" AnchorPane.topAnchor="259.0">
                      <image>
@@ -121,7 +121,7 @@
                   </AnchorPane>
                </children>
             </AnchorPane>
-            <AnchorPane fx:id="User_dashboard" prefHeight="674.0" prefWidth="1268.0" visible="false">
+            <AnchorPane fx:id="User_dashboard" prefHeight="674.0" prefWidth="1268.0">
                <children>
                   <Pane layoutX="14.0" layoutY="16.0" prefHeight="75.0" prefWidth="152.0">
                      <children>
@@ -164,11 +164,12 @@
                   </ImageView>
                   <TableView fx:id="Discover_panel" layoutX="5.0" layoutY="150.0" prefHeight="520.0" prefWidth="1257.0">
                      <columns>
-                        <TableColumn fx:id="headline_discover" prefWidth="308.0" text="Headline" />
+                        <TableColumn fx:id="Cat_column" prefWidth="102.0" text="Category" />
+                        <TableColumn fx:id="headline_discover" prefWidth="238.0" text="Headline" />
                         <TableColumn fx:id="desc_discover" minWidth="0.0" prefWidth="470.0" text="Description" />
-                        <TableColumn fx:id="learn_more" prefWidth="211.0" text="learn more" />
+                        <TableColumn fx:id="learn_more" prefWidth="201.0" text="learn more" />
                         <TableColumn fx:id="readColumn" prefWidth="158.0" resizable="false" text="Mark as read" />
-                        <TableColumn fx:id="likeColumn" prefWidth="89.0" resizable="false" text="Like" />
+                        <TableColumn fx:id="likeColumn" prefWidth="99.0" resizable="false" text="Like" />
                      </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

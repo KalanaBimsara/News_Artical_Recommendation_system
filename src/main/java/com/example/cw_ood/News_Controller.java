@@ -100,13 +100,15 @@ public class News_Controller {
     @FXML
     public TableColumn<News, String> learn_more;    // TableColumn for learn more
     @FXML
+    public TableColumn<News, String> Cat_column;
+    @FXML
     private TableColumn<News, Void> readColumn;
     @FXML
     private TableColumn<News, Void> likeColumn;
     @FXML
 
 
-    private MongoCollection<Document> newsCollection;
+    private MongoCollection<Document> categorized_newsCollection;
     private MongoCollection<Document> readHistoryCollection;
     private MongoCollection<Document> likedArticlesCollection;
 
@@ -258,6 +260,8 @@ public class News_Controller {
         headline_discover.setCellValueFactory(new PropertyValueFactory<>("title"));
         desc_discover.setCellValueFactory(new PropertyValueFactory<>("description"));
         learn_more.setCellValueFactory(new PropertyValueFactory<>("url"));
+        Cat_column.setCellValueFactory(new PropertyValueFactory<>("category"));
+
 
         // Initialize history table columns
         headline_history.setCellValueFactory(new PropertyValueFactory<>("title"));
@@ -360,39 +364,26 @@ public class News_Controller {
 
 
     private void fetchNewsFromDatabase() {
-        if (newsCollection == null) {
+        if (categorized_newsCollection == null) {
             throw new IllegalStateException("newsCollection is not initialized!");
         }
 
         ObservableList<News> newsList = FXCollections.observableArrayList();
 
-        for (Document doc : newsCollection.find()) {
+        for (Document doc : categorized_newsCollection.find()) {
             String title = doc.getString("title");
             String description = doc.getString("description");
             String url = doc.getString("url");
-            Document readStatesDoc = doc.get("readStates", Document.class);
-            Document likeStatesDoc = doc.get("likeStates", Document.class);
+            String category = doc.getString("category"); // Fetch the category field from the document
 
-            News news = new News(title, description, url);
-
-            // Populate user-specific states
-            if (readStatesDoc != null) {
-                for (String user : readStatesDoc.keySet()) {
-                    news.setRead(user, readStatesDoc.getBoolean(user));
-                }
-            }
-
-            if (likeStatesDoc != null) {
-                for (String user : likeStatesDoc.keySet()) {
-                    news.setLiked(user, likeStatesDoc.getBoolean(user));
-                }
-            }
+            News news = new News(title, description, url, category); // Pass the category to the News object
 
             newsList.add(news);
         }
 
         Discover_panel.setItems(newsList);
     }
+
 
 
 
@@ -455,11 +446,11 @@ public class News_Controller {
 
 
     public void setDatabase(MongoDatabase database) {
-        this.newsCollection = database.getCollection("News");
+        this.categorized_newsCollection = database.getCollection("categorized_news");
         this.readHistoryCollection = database.getCollection("ReadHistory");
         this.likedArticlesCollection = database.getCollection("LikedArticles");
         fetchNewsFromDatabase(); // Initialize news collection
-        System.out.println("newsCollection initialized: " + (this.newsCollection != null));
+        System.out.println("newsCollection initialized: " + (this.categorized_newsCollection != null));
     }
 
     // Mark article as read
@@ -510,7 +501,7 @@ public class News_Controller {
         likedArticlesCollection.replaceOne(new Document("username", username), userRecord, new ReplaceOptions().upsert(true));
     }
 
-    private List<String> getUserReadArticles(String username) {
+    /*private List<String> getUserReadArticles(String username) {
         Document userRecord = readHistoryCollection.find(new Document("username", username)).first();
         if (userRecord == null) return Collections.emptyList();
         return userRecord.getList("readArticles", Document.class)
@@ -553,7 +544,7 @@ public class News_Controller {
 
     private void refreshTable() {
         fetchNewsFromDatabase(); // Re-fetch data to update the TableView
-    }
+    }*/
 
 
     private void loadHistoryTable() {
@@ -564,11 +555,16 @@ public class News_Controller {
             String title = doc.getString("title");
             String description = doc.getString("description");
             String url = doc.getString("url");
-            historyList.add(new News(title, description, url));
+            String category = doc.getString("category"); // Optional: Use a default if category is not available
+            if (category == null) {
+                category = "Unknown";
+            }
+            historyList.add(new News(title, description, url, category)); // Include category
         }
 
         history_table.setItems(historyList);
     }
+
 
     private void loadLikedTable() {
         ObservableList<News> likedList = FXCollections.observableArrayList();
@@ -578,11 +574,16 @@ public class News_Controller {
             String title = doc.getString("title");
             String description = doc.getString("description");
             String url = doc.getString("url");
-            likedList.add(new News(title, description, url));
+            String category = doc.getString("category"); // Optional: Use a default if category is not available
+            if (category == null) {
+                category = "Unknown";
+            }
+            likedList.add(new News(title, description, url, category)); // Include category
         }
 
         like_table.setItems(likedList);
     }
+
 
     private List<Document> getReadArticlesFromDatabase(String username) {
         Document userRecord = readHistoryCollection.find(new Document("username", username)).first();

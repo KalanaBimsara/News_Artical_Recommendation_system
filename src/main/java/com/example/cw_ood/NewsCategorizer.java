@@ -5,42 +5,50 @@ import java.net.*;
 import org.json.*;
 
 public class NewsCategorizer {
+    private static final String API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli";
+    private static final String API_TOKEN = "Bearer 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";
+
     public static String categorize(String text, String[] categories) throws IOException {
-        URL url = new URL("https://api-inference.huggingface.co/models/facebook/bart-large-mnli");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Authorization", "Bearer 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");
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setDoOutput(true);
+        HttpURLConnection connection = null;
+        try {
+            URL url = new URL(API_URL);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Authorization", API_TOKEN);
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
 
-        // Prepare JSON payload
-        JSONObject payload = new JSONObject();
-        payload.put("inputs", text);
-        payload.put("parameters", new JSONObject().put("candidate_labels", String.join(",", categories)));
+            // Prepare JSON payload
+            JSONObject payload = new JSONObject();
+            payload.put("inputs", text);
+            payload.put("parameters", new JSONObject().put("candidate_labels", String.join(",", categories)));
 
-        // Send payload
-        try (OutputStream os = connection.getOutputStream()) {
-            os.write(payload.toString().getBytes());
+            // Send payload
+            try (OutputStream os = connection.getOutputStream()) {
+                os.write(payload.toString().getBytes());
+            }
+
+            // Read response
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+            reader.close();
+
+            // Parse and return top category
+            JSONObject jsonResponse = new JSONObject(response.toString());
+            return jsonResponse.getJSONArray("labels").getString(0);
+
+        } catch (Exception e) {
+            System.err.println("Categorization API call failed: " + e.getMessage());
+            return "general"; // Default category in case of error
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
-
-        // Read response
-        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        StringBuilder response = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            response.append(line);
-        }
-        reader.close();
-
-        // Parse and return top category
-        JSONObject jsonResponse = new JSONObject(response.toString());
-        return jsonResponse.getJSONArray("labels").getString(0);
-    }
-
-    public static void main(String[] args) throws IOException {
-        String article = "New AI technology revolutionizes healthcare by improving diagnostics.";
-        String[] categories = {"Sports", "Technology", "Health", "AI", "Politics"};
-        String category = categorize(article, categories);
-        System.out.println("Predicted Category: " + category);
     }
 }
+

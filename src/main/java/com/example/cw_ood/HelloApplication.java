@@ -20,7 +20,7 @@ public class HelloApplication extends Application {
 
         // Fetch news
         NewsFetcher newsFetcher = new NewsFetcher(database);
-        newsFetcher.fetchAndStoreNews();
+        newsFetcher.fetchAndCategorizeNews();
 
         // Load FXML
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/cw_ood/News_Article.fxml"));
