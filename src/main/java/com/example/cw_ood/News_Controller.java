@@ -92,9 +92,7 @@ public class News_Controller {
     @FXML
     public Button history_button;
     @FXML
-    private Button logout_button;
-    @FXML
-    private ImageView logout_img;
+    public Label HI_admin;
     @FXML
     public Label HI_user;
     @FXML
@@ -107,6 +105,38 @@ public class News_Controller {
     public TableColumn<News, String> learn_more;    // TableColumn for learn more
     @FXML
     public TableColumn<News, String> Cat_column;
+    @FXML
+    public AnchorPane admin_dashboard;
+    @FXML
+    public Button Dashboard_button;
+    @FXML
+    public Button user_control;
+    @FXML
+    public Button add_article;
+    @FXML
+    public TableView News_Admin;
+    @FXML
+    public TableColumn Cat_column_admin;
+    @FXML
+    public TableColumn headline_admin;
+    @FXML
+    public TableColumn desc_admin;
+    @FXML
+    public TableColumn learn_more_admin;
+    @FXML
+    public TableView user_control_table;
+    @FXML
+    public TableColumn user_name_admin;
+    @FXML
+    public TableColumn user_history_admin;
+    @FXML
+    public TableColumn delete_user;
+    @FXML
+    public TableColumn password_reset;
+    @FXML
+    public Button logout_button1;
+    @FXML
+    public AnchorPane add_article_panel;
     @FXML
     private TableColumn<News, Void> readColumn;
     @FXML
@@ -136,35 +166,65 @@ public class News_Controller {
         this.userService = null; // Will be set later by setter
     }
 
+    private boolean isAdminMode = false; // Tracks if Admin mode is active
+
+    public void setUserMode(ActionEvent actionEvent) {
+        isAdminMode = false; // Set to User mode
+        Admin_button.setStyle("-fx-background-color: #3c3f41;");
+        user_button.setStyle("-fx-background-color: #272727;"); // Highlight active button
+    }
+
+    public void setAdminMode(ActionEvent actionEvent) {
+        isAdminMode = true; // Set to Admin mode
+        Admin_button.setStyle("-fx-background-color: #272727;");
+        user_button.setStyle("-fx-background-color: #3c3f41;"); // Highlight active button
+    }
+
+
     public void Login_to_system(ActionEvent actionEvent) {
         String username = Login_username_field.getText();
         String password = login_password_field.getText();
 
-        if (userService.validateLogin(username, password)) {
-            currentUser = username; // Set the current user
-            // Proceed with setup
-            initialize();
-            Log_in_panel.setVisible(false);
-            Login_field.setVisible(false);
-            Sign_up_panel.setVisible(false);
-            Password_reset.setVisible(false);
-            User_dashboard.setVisible(true);
-            HI_user.setText("Hi, " + username);
-            Discover_panel.getItems().clear();
-            fetchNewsFromDatabase(); // Load personalized news
-            addActionButtons(currentUser); // Add buttons
+        if (isAdminMode) {
+            // Admin Login Logic
+            if (userService.validateAdminLogin(username, password)) {
+                currentUser = username; // Set current admin
+                admin_dashboard.setVisible(true); // Show admin dashboard
+                Log_in_panel.setVisible(false);
+                Login_field.setVisible(false);
+                HI_admin.setText("Hi, " + username);
 
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Login Successful");
-            alert.setHeaderText("Welcome, " + username + "!");
-            alert.showAndWait();
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Admin Login Successful");
+                alert.setHeaderText("Welcome, Admin " + username + "!");
+                alert.showAndWait();
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Invalid Admin Credentials", "Please check your username and password.");
+            }
         } else {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("Invalid username or password");
-            alert.showAndWait();
+            // User Login Logic
+            if (userService.validateLogin(username, password)) {
+                currentUser = username; // Set current user
+                User_dashboard.setVisible(true); // Show user dashboard
+                Log_in_panel.setVisible(false);
+                Login_field.setVisible(false);
+                HI_user.setText("Hi, " + username);
+                Discover_panel.getItems().clear();
+                fetchNewsFromDatabase(); // Load personalized news
+                addActionButtons(currentUser); // Add buttons
+
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Login Successful");
+                alert.setHeaderText("Welcome, " + username + "!");
+                alert.showAndWait();
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Invalid User Credentials", "Please check your username and password.");
+            }
         }
     }
+
+
+
 
     public void SignUp(ActionEvent actionEvent) {
         Login_field.setVisible(false);
@@ -185,6 +245,7 @@ public class News_Controller {
         Log_in_panel.setVisible(true);
         Login_field.setVisible(true);
         User_dashboard.setVisible(false);
+        admin_dashboard.setVisible(false);
     }
     public void Show_history(ActionEvent actionEvent) {
         history_table.setVisible(true);
