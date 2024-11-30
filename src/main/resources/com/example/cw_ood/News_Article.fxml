@@ -304,21 +304,21 @@
                               <Font size="13.0" />
                            </font>
                         </Label>
-                        <TextArea layoutX="190.0" layoutY="82.0" prefHeight="41.0" prefWidth="990.0" />
+                        <TextArea fx:id="title_field" layoutX="190.0" layoutY="82.0" prefHeight="41.0" prefWidth="990.0" />
                         <Label alignment="CENTER" contentDisplay="CENTER" layoutX="52.0" layoutY="123.0" prefHeight="79.0" prefWidth="144.0" text="Description" textAlignment="JUSTIFY">
                            <font>
                               <Font size="13.0" />
                            </font>
                         </Label>
-                        <TextArea layoutX="190.0" layoutY="144.0" prefHeight="156.0" prefWidth="990.0" />
+                        <TextArea fx:id="description_field" layoutX="190.0" layoutY="144.0" prefHeight="156.0" prefWidth="990.0" />
                         <Label alignment="CENTER" contentDisplay="CENTER" layoutX="52.0" layoutY="304.0" prefHeight="79.0" prefWidth="144.0" text="URL" textAlignment="JUSTIFY">
                            <font>
                               <Font size="13.0" />
                            </font>
                         </Label>
-                        <TextArea layoutX="190.0" layoutY="323.0" prefHeight="41.0" prefWidth="990.0" />
-                        <Button layoutX="979.0" layoutY="411.0" mnemonicParsing="false" prefHeight="58.0" prefWidth="200.0" text="Submit" />
-                        <Button layoutX="755.0" layoutY="409.0" mnemonicParsing="false" prefHeight="58.0" prefWidth="200.0" text="Clear" />
+                        <TextArea fx:id="url_field" layoutX="190.0" layoutY="323.0" prefHeight="41.0" prefWidth="990.0" />
+                        <Button fx:id="submit_button" layoutX="979.0" layoutY="411.0" mnemonicParsing="false" onAction="#handleSubmitArticle" prefHeight="58.0" prefWidth="200.0" text="Submit" />
+                        <Button fx:id="clear_button" layoutX="755.0" layoutY="409.0" mnemonicParsing="false" onAction="#handleClearFields" prefHeight="58.0" prefWidth="200.0" text="Clear" />
                      </children>
                   </AnchorPane>
                </children>

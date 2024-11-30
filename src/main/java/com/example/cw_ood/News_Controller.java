@@ -140,6 +140,10 @@ public class News_Controller {
     @FXML
     public TableColumn<News, Void> delete_news;
     @FXML
+    public Button submit_button;
+    @FXML
+    public Button clear_button;
+    @FXML
     private TableColumn<News, Void> readColumn;
     @FXML
     private TableColumn<News, Void> likeColumn;
@@ -153,6 +157,8 @@ public class News_Controller {
     public TableColumn<News, String> recommendations_learnmore;
     @FXML
     public TableColumn<News, String> recommendations_cat;
+    @FXML
+    private TextArea title_field, description_field, url_field;
 
 
     private MongoCollection<Document> categorized_newsCollection;
@@ -313,6 +319,8 @@ public class News_Controller {
         News_Admin.setVisible(true);
         user_control_table.setVisible(false);
         add_article_panel.setVisible(false);
+        loadNewsTable();
+        News_Admin.refresh();
     }
 
     @FXML
@@ -788,9 +796,37 @@ public class News_Controller {
         desc_admin.setCellValueFactory(new PropertyValueFactory<>("description"));
         learn_more_admin.setCellValueFactory(new PropertyValueFactory<>("url"));
 
+        // Add a Delete button to each row
+        delete_news.setCellFactory(param -> new TableCell<>() {
+            private final Button deleteButton = new Button("Delete");
+
+            @Override
+            protected void updateItem(Void unused, boolean empty) {
+                super.updateItem(unused, empty);
+
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setGraphic(null);
+                } else {
+                    News news = getTableRow().getItem();
+                    deleteButton.setOnAction(event -> {
+                        boolean isDeleted = adminControl.deleteNews(news.getId());
+                        if (isDeleted) {
+                            getTableView().getItems().remove(news);
+                            System.out.println("News deleted successfully!");
+                        } else {
+                            System.err.println("Failed to delete news!");
+                        }
+                    });
+                    setGraphic(deleteButton);
+                }
+            }
+        });
+
+
         // Add data to the table
         News_Admin.setItems(observableList);
     }
+
 
     private void loadUserControlTable() {
         ObservableList<AdminUserControl> usersList = FXCollections.observableArrayList();
@@ -803,13 +839,12 @@ public class News_Controller {
 
             // Create delete and reset buttons
             Button deleteButton = new Button("Delete");
-            Button resetPasswordButton = new Button("Reset Password");
 
             // Set button actions
             deleteButton.setOnAction(event -> deleteUser(username));
 
             // Add user to the list
-            usersList.add(new AdminUserControl(username, userHistory, deleteButton, resetPasswordButton));
+            usersList.add(new AdminUserControl(username, userHistory, deleteButton));
         }
 
         // Bind data to the table
@@ -817,8 +852,8 @@ public class News_Controller {
         user_name_admin.setCellValueFactory(new PropertyValueFactory<>("username"));
         user_history_admin.setCellValueFactory(new PropertyValueFactory<>("userHistory"));
         delete_user.setCellValueFactory(new PropertyValueFactory<>("deleteButton"));
-        password_reset.setCellValueFactory(new PropertyValueFactory<>("resetPasswordButton"));
     }
+
     private void deleteUser(String username) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Delete User");
@@ -833,7 +868,58 @@ public class News_Controller {
         }
     }
 
+    @FXML
+    private void handleSubmitArticle(ActionEvent actionEvent) {
+        // Get input values
+        String title = title_field.getText().trim();
+        String description = description_field.getText().trim();
+        String url = url_field.getText().trim();
 
+        // Validate inputs
+        if (title.isEmpty() || description.isEmpty() || url.isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Input Error", "All fields are required.");
+            return;
+        }
+
+        // Categorize article
+        NewsCategorizer categorizer = new NewsCategorizer(); // Assuming categorizer exists
+        String category;
+        try {
+            category = categorizer.categorize(title + " " + description, new String[]{"Sports", "Technology", "Health", "AI", "Business", "Entertainment", "General", "Science", "Politics"});
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Categorization Error", "Error categorizing the article.");
+            return;
+        }
+
+        // Prepare article document
+        Document article = new Document("title", title)
+                .append("description", description)
+                .append("url", url)
+                .append("category", category)
+                .append("timestamp", java.time.Instant.now().toString())
+                .append("readCount", 0)
+                .append("likeCount", 0);
+
+        // Insert into database
+        try {
+            categorized_newsCollection.insertOne(article);
+            showAlert(Alert.AlertType.INFORMATION, "Success", "Article added successfully!");
+            clearFields(); // Clear fields after successful submission
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to add the article. Please try again.");
+        }
+    }
+
+    @FXML
+    private void handleClearFields(ActionEvent actionEvent) {
+        clearFields();
+    }
+
+    private void clearFields() {
+        title_field.clear();
+        description_field.clear();
+        url_field.clear();
+    }
 
 
 

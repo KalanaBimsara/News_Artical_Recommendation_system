@@ -1,6 +1,7 @@
 package com.example.cw_ood;
 
 public class News {
+    private String id;
     private String category;
     private String title;
     private String description;
@@ -12,6 +13,13 @@ public class News {
         this.title = title;
         this.description = description;
         this.url = url;
+    }
+    public News(String id, String title, String description, String url, String category) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.url = url;
+        this.category = category;
     }
 
     // Getters
@@ -46,5 +54,13 @@ public class News {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

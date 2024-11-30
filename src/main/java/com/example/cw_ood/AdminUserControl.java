@@ -6,13 +6,11 @@ public class AdminUserControl {
     private String username; // Username of the user
     private String userHistory; // Placeholder for user history or summary
     private Button deleteButton; // Button for deleting the user
-    private Button resetPasswordButton; // Button for resetting the user's password
 
-    public AdminUserControl(String username, String userHistory, Button deleteButton, Button resetPasswordButton) {
+    public AdminUserControl(String username, String userHistory, Button deleteButton) {
         this.username = username;
         this.userHistory = userHistory;
         this.deleteButton = deleteButton;
-        this.resetPasswordButton = resetPasswordButton;
     }
 
     // Getters and setters
@@ -40,12 +38,5 @@ public class AdminUserControl {
         this.deleteButton = deleteButton;
     }
 
-    public Button getResetPasswordButton() {
-        return resetPasswordButton;
-    }
-
-    public void setResetPasswordButton(Button resetPasswordButton) {
-        this.resetPasswordButton = resetPasswordButton;
-    }
 }
 
