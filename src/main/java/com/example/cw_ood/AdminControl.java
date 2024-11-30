@@ -8,7 +8,9 @@ import org.bson.Document;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 public class AdminControl {
     private final MongoCollection<Document> usersCollection;
@@ -17,6 +19,7 @@ public class AdminControl {
     public AdminControl(MongoDatabase database) {
         this.usersCollection = database.getCollection("Users");
         this.newsCollection = database.getCollection("categorized_news");
+
     }
 
     // Handle Deleting a User
@@ -68,4 +71,26 @@ public class AdminControl {
             throw new RuntimeException("Error hashing password", e);
         }
     }
+
+
+
+    public List<News> fetchAllNews() {
+        List<News> newsList = new ArrayList<>();
+        for (Document doc : newsCollection.find()) {
+            String category = doc.getString("category");
+            String title = doc.getString("title");
+            String description = doc.getString("description");
+            String url = doc.getString("url");
+
+            newsList.add(new News(category, title, description, url));
+        }
+        return newsList;
+    }
+
+
+    public void deleteNews(String url) {
+        newsCollection.deleteOne(new Document("url", url));
+        showAlert("News Deleted", "The news article has been deleted successfully.");
+    }
+
 }

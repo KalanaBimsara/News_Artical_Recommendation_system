@@ -116,13 +116,13 @@ public class News_Controller {
     @FXML
     public TableView News_Admin;
     @FXML
-    public TableColumn Cat_column_admin;
+    public TableColumn <News, String>Cat_column_admin;
     @FXML
-    public TableColumn headline_admin;
+    public TableColumn<News, String> headline_admin;
     @FXML
-    public TableColumn desc_admin;
+    public TableColumn<News, String> desc_admin;
     @FXML
-    public TableColumn learn_more_admin;
+    public TableColumn <News, String>learn_more_admin;
     @FXML
     public TableView user_control_table;
     @FXML
@@ -137,6 +137,8 @@ public class News_Controller {
     public Button logout_button1;
     @FXML
     public AnchorPane add_article_panel;
+    @FXML
+    public TableColumn<News, Void> delete_news;
     @FXML
     private TableColumn<News, Void> readColumn;
     @FXML
@@ -160,6 +162,12 @@ public class News_Controller {
     private String currentUser;
     private UserService userService;
     private MongoDatabase database;
+    private AdminControl adminControl;
+
+    public void setAdminControl(AdminControl adminControl) {
+        this.adminControl = adminControl;
+    }
+
 
     public News_Controller() {
         // Initialize optional defaults if necessary
@@ -193,6 +201,7 @@ public class News_Controller {
                 Log_in_panel.setVisible(false);
                 Login_field.setVisible(false);
                 HI_admin.setText("Hi, " + username);
+                loadNewsTable();
 
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Admin Login Successful");
@@ -222,8 +231,6 @@ public class News_Controller {
             }
         }
     }
-
-
 
 
     public void SignUp(ActionEvent actionEvent) {
@@ -300,6 +307,29 @@ public class News_Controller {
         recommendations_cat.setCellValueFactory(new PropertyValueFactory<>("category"));
     }
 
+    //admin panel
+    @FXML
+    public void showAdminNews(ActionEvent actionEvent) {
+        News_Admin.setVisible(true);
+        user_control_table.setVisible(false);
+        add_article_panel.setVisible(false);
+    }
+
+    @FXML
+    public void show_user_control_table(ActionEvent actionEvent) {
+        News_Admin.setVisible(false);
+        user_control_table.setVisible(true);
+        add_article_panel.setVisible(false);
+    }
+
+    @FXML
+    public void show_add_article_panel(ActionEvent actionEvent) {
+        News_Admin.setVisible(false);
+        user_control_table.setVisible(false);
+        add_article_panel.setVisible(true);
+    }
+
+
 
 
     @FXML
@@ -364,7 +394,6 @@ public class News_Controller {
         desc_discover.setCellValueFactory(new PropertyValueFactory<>("description"));
         learn_more.setCellValueFactory(new PropertyValueFactory<>("url"));
         Cat_column.setCellValueFactory(new PropertyValueFactory<>("category"));
-
 
         // Initialize history table columns
         headline_history.setCellValueFactory(new PropertyValueFactory<>("title"));
@@ -489,7 +518,6 @@ public class News_Controller {
 
 
 
-
     //add button
 
     private void addActionButtons(String currentUser) {
@@ -545,7 +573,6 @@ public class News_Controller {
 
 
     }
-
 
 
     public void setDatabase(MongoDatabase database) {
@@ -661,11 +688,6 @@ public class News_Controller {
     }
 
 
-
-
-
-
-
     public class RecommendationEngine {
         private final MongoDatabase database;
 
@@ -729,5 +751,32 @@ public class News_Controller {
             return userRecord.getList("readArticles", Document.class);
         }*/
     }
+
+    //admin functions
+
+
+    @FXML
+    public void loadNewsTable() {
+        if (adminControl == null) {
+            System.err.println("AdminControl is not initialized!");
+            return;
+        }
+
+        // Fetch all news
+        List<News> newsList = adminControl.fetchAllNews();
+        ObservableList<News> observableList = FXCollections.observableArrayList(newsList);
+
+        // Correctly map properties to table columns
+        Cat_column_admin.setCellValueFactory(new PropertyValueFactory<>("category"));
+        headline_admin.setCellValueFactory(new PropertyValueFactory<>("title"));
+        desc_admin.setCellValueFactory(new PropertyValueFactory<>("description"));
+        learn_more_admin.setCellValueFactory(new PropertyValueFactory<>("url"));
+
+        // Add data to the table
+        News_Admin.setItems(observableList);
+    }
+
+
+
 
 }

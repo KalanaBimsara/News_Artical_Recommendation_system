@@ -18,6 +18,10 @@ public class HelloApplication extends Application {
             MongoDatabase database = MongoDBConnection.getDatabase();
             UserService userService = new UserService(database);
 
+            // Initialize AdminControl
+            AdminControl adminControl = new AdminControl(database);
+
+
             // Fetch news with error handling
             NewsFetcher newsFetcher = new NewsFetcher(database);
             try {
@@ -30,10 +34,14 @@ public class HelloApplication extends Application {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/cw_ood/News_Article.fxml"));
             Parent root = fxmlLoader.load();
 
+
+
             // Inject dependencies into the controller
             News_Controller controller = fxmlLoader.getController();
             controller.setUserService(userService);
             controller.setDatabase(database);
+            // Set AdminControl in News_Controller
+            controller.setAdminControl(adminControl);
 
             // Set up the scene
             Scene scene = new Scene(root);
