@@ -88,9 +88,9 @@ public class AdminControl {
     }
 
 
-    public void deleteNews(String url) {
+    /*public void deleteNews(String url) {
         newsCollection.deleteOne(new Document("url", url));
         showAlert("News Deleted", "The news article has been deleted successfully.");
-    }
+    }*/
 
 }

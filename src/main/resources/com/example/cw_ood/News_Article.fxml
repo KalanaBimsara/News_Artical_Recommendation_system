@@ -283,7 +283,6 @@
                         <TableColumn fx:id="user_name_admin" prefWidth="102.0" text="Username" />
                         <TableColumn fx:id="user_history_admin" minWidth="0.0" prefWidth="470.0" text="User History" />
                         <TableColumn fx:id="delete_user" prefWidth="181.0" text="Delete User" />
-                        <TableColumn fx:id="password_reset" prefWidth="165.0" text="Password Reset" />
                      </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

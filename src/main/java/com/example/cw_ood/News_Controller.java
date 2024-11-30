@@ -297,14 +297,14 @@ public class News_Controller {
             String description = doc.getString("description");
             String url = doc.getString("url");
             String category = doc.getString("category");
-            recommendations.add(new News(title, description, url, category));
+            recommendations.add(new News(category,title, description, url));
         }
 
-        recommendations_table.setItems(recommendations);
         recommendations_headline.setCellValueFactory(new PropertyValueFactory<>("title"));
         recommendations_description.setCellValueFactory(new PropertyValueFactory<>("description"));
         recommendations_learnmore.setCellValueFactory(new PropertyValueFactory<>("url"));
         recommendations_cat.setCellValueFactory(new PropertyValueFactory<>("category"));
+        recommendations_table.setItems(recommendations);
     }
 
     //admin panel
@@ -320,6 +320,9 @@ public class News_Controller {
         News_Admin.setVisible(false);
         user_control_table.setVisible(true);
         add_article_panel.setVisible(false);
+        loadUserControlTable();
+        user_control_table.refresh();
+
     }
 
     @FXML
@@ -328,8 +331,6 @@ public class News_Controller {
         user_control_table.setVisible(false);
         add_article_panel.setVisible(true);
     }
-
-
 
 
     @FXML
@@ -390,20 +391,22 @@ public class News_Controller {
     //load news from db
     @FXML
     public void initialize() {
-        headline_discover.setCellValueFactory(new PropertyValueFactory<>("title"));
-        desc_discover.setCellValueFactory(new PropertyValueFactory<>("description"));
-        learn_more.setCellValueFactory(new PropertyValueFactory<>("url"));
-        Cat_column.setCellValueFactory(new PropertyValueFactory<>("category"));
+        headline_discover.setCellValueFactory(new PropertyValueFactory<>("title")); // Maps to getTitle()
+        desc_discover.setCellValueFactory(new PropertyValueFactory<>("description")); // Maps to getDescription()
+        learn_more.setCellValueFactory(new PropertyValueFactory<>("url")); // Maps to getUrl()
+        Cat_column.setCellValueFactory(new PropertyValueFactory<>("category")); // Maps to getCategory()
 
-        // Initialize history table columns
+
         headline_history.setCellValueFactory(new PropertyValueFactory<>("title"));
         description_history.setCellValueFactory(new PropertyValueFactory<>("description"));
         learnmore_history.setCellValueFactory(new PropertyValueFactory<>("url"));
+
 
         // Initialize liked table columns
         headline_like.setCellValueFactory(new PropertyValueFactory<>("title"));
         desciption_like.setCellValueFactory(new PropertyValueFactory<>("description"));
         learnmore_like.setCellValueFactory(new PropertyValueFactory<>("url"));
+
 
 
         // Call addActionButtons with current user & Load user-specific history and liked articles
@@ -497,24 +500,29 @@ public class News_Controller {
 
     private void fetchNewsFromDatabase() {
         if (categorized_newsCollection == null) {
-            throw new IllegalStateException("newsCollection is not initialized!");
+            throw new IllegalStateException("categorized_newsCollection is not initialized!");
         }
 
         ObservableList<News> newsList = FXCollections.observableArrayList();
 
+        // Iterate over the documents in the database collection
         for (Document doc : categorized_newsCollection.find()) {
+            String category = doc.getString("category"); // Correct field order: category first
             String title = doc.getString("title");
             String description = doc.getString("description");
             String url = doc.getString("url");
-            String category = doc.getString("category"); // Fetch the category field from the document
 
-            News news = new News(title, description, url, category); // Pass the category to the News object
+            // Create the News object with the correct parameter order
+            News news = new News(category, title, description, url);
 
+            // Add to the list
             newsList.add(news);
         }
 
+        // Set the items in the Discover panel table
         Discover_panel.setItems(newsList);
     }
+
 
 
 
@@ -640,14 +648,18 @@ public class News_Controller {
         List<Document> readArticles = getReadArticlesFromDatabase(currentUser);
 
         for (Document doc : readArticles) {
+            String category = doc.getString("category"); // Fetch category first
             String title = doc.getString("title");
             String description = doc.getString("description");
             String url = doc.getString("url");
-            String category = doc.getString("category"); // Optional: Use a default if category is not available
+
+            // Use default if category is null
             if (category == null) {
                 category = "Unknown";
             }
-            historyList.add(new News(title, description, url, category)); // Include category
+
+            // Match constructor parameter order
+            historyList.add(new News(category, title, description, url));
         }
 
         history_table.setItems(historyList);
@@ -659,18 +671,23 @@ public class News_Controller {
         List<Document> likedArticles = getLikedArticlesFromDatabase(currentUser);
 
         for (Document doc : likedArticles) {
+            String category = doc.getString("category"); // Fetch category first
             String title = doc.getString("title");
             String description = doc.getString("description");
             String url = doc.getString("url");
-            String category = doc.getString("category"); // Optional: Use a default if category is not available
+
+            // Use default if category is null
             if (category == null) {
                 category = "Unknown";
             }
-            likedList.add(new News(title, description, url, category)); // Include category
+
+            // Match constructor parameter order
+            likedList.add(new News(category, title, description, url));
         }
 
         like_table.setItems(likedList);
     }
+
 
 
     private List<Document> getReadArticlesFromDatabase(String username) {
@@ -752,9 +769,8 @@ public class News_Controller {
         }*/
     }
 
+
     //admin functions
-
-
     @FXML
     public void loadNewsTable() {
         if (adminControl == null) {
@@ -775,6 +791,51 @@ public class News_Controller {
         // Add data to the table
         News_Admin.setItems(observableList);
     }
+
+    private void loadUserControlTable() {
+        ObservableList<AdminUserControl> usersList = FXCollections.observableArrayList();
+
+        // Fetch users from database
+        MongoCollection<Document> usersCollection = database.getCollection("Users");
+        for (Document userDoc : usersCollection.find()) {
+            String username = userDoc.getString("username");
+            String userHistory = "Summary or Stats"; // Placeholder, replace with actual history
+
+            // Create delete and reset buttons
+            Button deleteButton = new Button("Delete");
+            Button resetPasswordButton = new Button("Reset Password");
+
+            // Set button actions
+            deleteButton.setOnAction(event -> deleteUser(username));
+
+            // Add user to the list
+            usersList.add(new AdminUserControl(username, userHistory, deleteButton, resetPasswordButton));
+        }
+
+        // Bind data to the table
+        user_control_table.setItems(usersList);
+        user_name_admin.setCellValueFactory(new PropertyValueFactory<>("username"));
+        user_history_admin.setCellValueFactory(new PropertyValueFactory<>("userHistory"));
+        delete_user.setCellValueFactory(new PropertyValueFactory<>("deleteButton"));
+        password_reset.setCellValueFactory(new PropertyValueFactory<>("resetPasswordButton"));
+    }
+    private void deleteUser(String username) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete User");
+        alert.setHeaderText("Are you sure you want to delete user: " + username + "?");
+        alert.setContentText("This action cannot be undone.");
+
+        if (alert.showAndWait().get() == ButtonType.OK) {
+            // Remove the user from the database
+            database.getCollection("Users").deleteOne(new Document("username", username));
+            loadUserControlTable(); // Refresh the table
+            showAlert(Alert.AlertType.INFORMATION, "User Deleted", "The user '" + username + "' has been deleted.");
+        }
+    }
+
+
+
+
 
 
 
