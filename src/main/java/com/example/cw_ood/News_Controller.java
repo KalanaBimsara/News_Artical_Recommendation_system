@@ -9,7 +9,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 import org.bson.Document;
@@ -96,13 +95,13 @@ public class News_Controller {
     @FXML
     public Label HI_user;
     @FXML
-    public TableView<News> Discover_panel; // TableView from FXML
+    public TableView<News> Discover_panel;
     @FXML
-    public TableColumn<News, String> headline_discover; // TableColumn for title
+    public TableColumn<News, String> headline_discover;
     @FXML
-    public TableColumn<News, String> desc_discover; // TableColumn for description
+    public TableColumn<News, String> desc_discover;
     @FXML
-    public TableColumn<News, String> learn_more;    // TableColumn for learn more
+    public TableColumn<News, String> learn_more;
     @FXML
     public TableColumn<News, String> Cat_column;
     @FXML
@@ -144,6 +143,8 @@ public class News_Controller {
     @FXML
     public Button clear_button;
     @FXML
+    public TableColumn cat_like;
+    @FXML
     private TableColumn<News, Void> readColumn;
     @FXML
     private TableColumn<News, Void> likeColumn;
@@ -169,19 +170,22 @@ public class News_Controller {
     private UserService userService;
     private MongoDatabase database;
     private AdminControl adminControl;
+    private ObservableList<News> likedList; // Declare as a class-level field
+
+    private boolean isAdminMode = false; // Tracks if Admin mode is active
 
     public void setAdminControl(AdminControl adminControl) {
         this.adminControl = adminControl;
     }
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
 
     public News_Controller() {
-        // Initialize optional defaults if necessary
-        this.userService = null; // Will be set later by setter
+        this.userService = null;
     }
-
-    private boolean isAdminMode = false; // Tracks if Admin mode is active
-
+//login and panel showing functions-------------------------------------------------------------------------------
     public void setUserMode(ActionEvent actionEvent) {
         isAdminMode = false; // Set to User mode
         Admin_button.setStyle("-fx-background-color: #3c3f41;");
@@ -194,13 +198,12 @@ public class News_Controller {
         user_button.setStyle("-fx-background-color: #3c3f41;"); // Highlight active button
     }
 
-
     public void Login_to_system(ActionEvent actionEvent) {
         String username = Login_username_field.getText();
         String password = login_password_field.getText();
 
         if (isAdminMode) {
-            // Admin Login Logic
+            // Admin
             if (userService.validateAdminLogin(username, password)) {
                 currentUser = username; // Set current admin
                 admin_dashboard.setVisible(true); // Show admin dashboard
@@ -217,7 +220,7 @@ public class News_Controller {
                 showAlert(Alert.AlertType.ERROR, "Invalid Admin Credentials", "Please check your username and password.");
             }
         } else {
-            // User Login Logic
+            // User
             if (userService.validateLogin(username, password)) {
                 currentUser = username; // Set current user
                 User_dashboard.setVisible(true); // Show user dashboard
@@ -237,7 +240,6 @@ public class News_Controller {
             }
         }
     }
-
 
     public void SignUp(ActionEvent actionEvent) {
         Login_field.setVisible(false);
@@ -279,8 +281,10 @@ public class News_Controller {
         Discover_panel.setVisible(true);
         like_table.setVisible(false);
         recommendations_table.setVisible(false);
+        fetchNewsFromDatabase();
 
     }
+    @FXML
     public void Show_recommendations(ActionEvent actionEvent) {
         if (database == null) {
             throw new IllegalStateException("Database is not initialized!");
@@ -294,24 +298,24 @@ public class News_Controller {
         RecommendationEngine recommendationEngine = new RecommendationEngine(database);
         List<Document> recommendedDocs = recommendationEngine.recommendArticles(currentUser, 10);
 
-        // Debugging: Log the recommended documents
-        System.out.println("Recommended Documents: " + recommendedDocs);
-
         ObservableList<News> recommendations = FXCollections.observableArrayList();
         for (Document doc : recommendedDocs) {
+            String category = doc.getString("category");
             String title = doc.getString("title");
             String description = doc.getString("description");
             String url = doc.getString("url");
-            String category = doc.getString("category");
-            recommendations.add(new News(category,title, description, url));
+
+            recommendations.add(new News(category, title, description, url ));
         }
 
+        recommendations_table.setItems(recommendations);
+        recommendations_cat.setCellValueFactory(new PropertyValueFactory<>("category"));
         recommendations_headline.setCellValueFactory(new PropertyValueFactory<>("title"));
         recommendations_description.setCellValueFactory(new PropertyValueFactory<>("description"));
         recommendations_learnmore.setCellValueFactory(new PropertyValueFactory<>("url"));
-        recommendations_cat.setCellValueFactory(new PropertyValueFactory<>("category"));
-        recommendations_table.setItems(recommendations);
+        recommendations_table.refresh();
     }
+
 
     //admin panel
     @FXML
@@ -330,7 +334,6 @@ public class News_Controller {
         add_article_panel.setVisible(false);
         loadUserControlTable();
         user_control_table.refresh();
-
     }
 
     @FXML
@@ -339,7 +342,6 @@ public class News_Controller {
         user_control_table.setVisible(false);
         add_article_panel.setVisible(true);
     }
-
 
     @FXML
     public void handleSignUp(ActionEvent actionEvent) {
@@ -360,7 +362,7 @@ public class News_Controller {
         }
     }
 
-    // Helper to show alerts
+    // show alerts
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -368,13 +370,7 @@ public class News_Controller {
         alert.setContentText(message);
         alert.showAndWait();
     }
-
-
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
-    // Reset Password Handler
+    // Reset Password
     @FXML
     public void handlePasswordReset(ActionEvent actionEvent) {
         String username = reset_username_field.getText();
@@ -393,16 +389,15 @@ public class News_Controller {
             showAlert(Alert.AlertType.ERROR, "Reset Failed", "Username not found. Please try again.");
         }
     }
+//login and panel showing functions-------------------------------------------------------------------------------
 
-
-
-    //load news from db
+    //load news from db and showing in tables------------------------------------------------------------------------
     @FXML
     public void initialize() {
-        headline_discover.setCellValueFactory(new PropertyValueFactory<>("title")); // Maps to getTitle()
-        desc_discover.setCellValueFactory(new PropertyValueFactory<>("description")); // Maps to getDescription()
-        learn_more.setCellValueFactory(new PropertyValueFactory<>("url")); // Maps to getUrl()
-        Cat_column.setCellValueFactory(new PropertyValueFactory<>("category")); // Maps to getCategory()
+        headline_discover.setCellValueFactory(new PropertyValueFactory<>("title"));
+        desc_discover.setCellValueFactory(new PropertyValueFactory<>("description"));
+        learn_more.setCellValueFactory(new PropertyValueFactory<>("url"));
+        Cat_column.setCellValueFactory(new PropertyValueFactory<>("category"));
 
 
         headline_history.setCellValueFactory(new PropertyValueFactory<>("title"));
@@ -411,9 +406,11 @@ public class News_Controller {
 
 
         // Initialize liked table columns
+        like_table.setItems(likedList);
         headline_like.setCellValueFactory(new PropertyValueFactory<>("title"));
         desciption_like.setCellValueFactory(new PropertyValueFactory<>("description"));
         learnmore_like.setCellValueFactory(new PropertyValueFactory<>("url"));
+        cat_like.setCellValueFactory(new PropertyValueFactory<>("category"));
 
 
 
@@ -531,66 +528,93 @@ public class News_Controller {
         Discover_panel.setItems(newsList);
     }
 
+    private final Set<String> readArticles = new HashSet<>();
+    private final Set<String> likedArticles = new HashSet<>();
 
 
-
-    //add button
-
+    //adding buttons to discover panel-----------------------------------------------------------------------------
     private void addActionButtons(String currentUser) {
         // "Mark as Read" Button Column
         readColumn.setCellFactory(tc -> new TableCell<>() {
-            private final Button readButton = new Button("Mark as Read");
-
-            {
-                readButton.setOnAction(event -> {
-                    News news = getTableView().getItems().get(getIndex());
-                    markAsRead(currentUser, news); // Save to ReadHistory collection
-                    readButton.setStyle("-fx-background-color: green;");
-                    readButton.setDisable(true); // Disable once marked as read
-                });
-            }
+            private final Button readButton = new Button();
 
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
+
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
                     setGraphic(null);
                 } else {
+                    News news = getTableRow().getItem();
+
+                    // Check if the article is already marked as read
+                    boolean isRead = readArticles.contains(news.getUrl()); // Use URL or a unique identifier
+
+                    // Update button text and style
+                    readButton.setText(isRead ? "Read" : "Mark as Read");
+                    readButton.setStyle(isRead ? "-fx-background-color: green;" : "-fx-background-color: gray;");
+                    readButton.setDisable(isRead);
+
+                    // Add action listener
+                    readButton.setOnAction(event -> {
+                        if (!isRead) {
+                            markAsRead(currentUser, news); // Save to the database
+                            readArticles.add(news.getUrl()); // Update local state
+                            readButton.setText("Read");
+                            readButton.setStyle("-fx-background-color: green;");
+                            readButton.setDisable(true);
+                        }
+                    });
+
                     setGraphic(readButton);
                 }
             }
         });
 
-
         // "Like" Button Column
         likeColumn.setCellFactory(tc -> new TableCell<>() {
-            private final Button likeButton = new Button("Like");
-
-            {
-                likeButton.setOnAction(event -> {
-                    News news = getTableView().getItems().get(getIndex());
-                    toggleLike(currentUser, news); // Save or remove from LikedArticles collection
-                    boolean isLiked = likeButton.getText().equals("Unlike");
-                    likeButton.setText(isLiked ? "Like" : "Unlike");
-                    likeButton.setStyle(isLiked ? "-fx-background-color: gray;" : "-fx-background-color: red;");
-                });
-            }
+            private final Button likeButton = new Button();
 
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
+
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
                     setGraphic(null);
                 } else {
+                    News news = getTableRow().getItem();
+
+                    // Check if the article is already liked
+                    boolean isLiked = likedArticles.contains(news.getUrl()); // Use URL or a unique identifier
+
+                    // Update button text and style
+                    likeButton.setText(isLiked ? "Unlike" : "Like");
+                    likeButton.setStyle(isLiked ? "-fx-background-color: red;" : "-fx-background-color: gray;");
+
+                    // Add action listener
+                    likeButton.setOnAction(event -> {
+                        if (isLiked) {
+                            unlikeArticle(currentUser, news); // Remove from the database
+                            likedArticles.remove(news.getUrl()); // Update local state
+                            likeButton.setText("Like");
+                            likeButton.setStyle("-fx-background-color: gray;");
+                        } else {
+                            likeArticle(currentUser, news); // Add to the database
+                            likedArticles.add(news.getUrl()); // Update local state
+                            likeButton.setText("Unlike");
+                            likeButton.setStyle("-fx-background-color: red;");
+                        }
+                    });
+
                     setGraphic(likeButton);
                 }
             }
         });
 
-
     }
 
 
+    //constructor
     public void setDatabase(MongoDatabase database) {
         this.database = database;
         this.categorized_newsCollection = database.getCollection("categorized_news");
@@ -600,57 +624,32 @@ public class News_Controller {
         System.out.println("newsCollection initialized: " + (this.categorized_newsCollection != null));
     }
 
-    // Mark article as read
+    // Mark article as read - working-----------------------------------------------------------------------------
     private void markAsRead(String username, News news) {
+        // Fetch the user record or create a new one
         Document userRecord = readHistoryCollection.find(new Document("username", username)).first();
         if (userRecord == null) {
             userRecord = new Document("username", username).append("readArticles", new ArrayList<>());
         }
 
-        // Avoid duplicates
-        List<Document> readArticles = userRecord.getList("readArticles", Document.class);
-        if (readArticles.stream().noneMatch(article -> article.getString("url").equals(news.getUrl()))) {
+        // Safely fetch the readArticles list
+        List<Document> readArticles = userRecord.getList("readArticles", Document.class, new ArrayList<>());
+
+        // Check for duplicates before adding
+        boolean alreadyRead = readArticles.stream()
+                .anyMatch(article -> article.getString("url").equals(news.getUrl()));
+
+        if (!alreadyRead) {
             readArticles.add(new Document("title", news.getTitle())
                     .append("description", news.getDescription())
                     .append("url", news.getUrl())
                     .append("timestamp", java.time.Instant.now().toString()));
         }
 
-        // Update the database
+        // Update the document
+        userRecord.put("readArticles", readArticles); // Replace with updated list
         readHistoryCollection.replaceOne(new Document("username", username), userRecord, new ReplaceOptions().upsert(true));
     }
-
-    // Mark or unmark article as liked
-    private void toggleLike(String username, News news) {
-        Document userRecord = likedArticlesCollection.find(new Document("username", username)).first();
-        if (userRecord == null) {
-            userRecord = new Document("username", username).append("likedArticles", new ArrayList<>());
-        }
-
-        // Check if already liked
-        List<Document> likedArticles = userRecord.getList("likedArticles", Document.class);
-        Optional<Document> existingArticle = likedArticles.stream()
-                .filter(article -> article.getString("url").equals(news.getUrl()))
-                .findFirst();
-
-        if (existingArticle.isPresent()) {
-            // Unlike: Remove the article
-            likedArticles.remove(existingArticle.get());
-        } else {
-            // Like: Add the article with category
-            likedArticles.add(new Document("title", news.getTitle())
-                    .append("description", news.getDescription())
-                    .append("url", news.getUrl())
-                    .append("category", news.getCategory()) // Ensure category is added
-                    .append("timestamp", java.time.Instant.now().toString()));
-        }
-
-        // Update the database
-        likedArticlesCollection.replaceOne(new Document("username", username), userRecord, new ReplaceOptions().upsert(true));
-    }
-
-
-
     private void loadHistoryTable() {
         ObservableList<News> historyList = FXCollections.observableArrayList();
         List<Document> readArticles = getReadArticlesFromDatabase(currentUser);
@@ -669,17 +668,66 @@ public class News_Controller {
             // Match constructor parameter order
             historyList.add(new News(category, title, description, url));
         }
-
         history_table.setItems(historyList);
     }
 
+    private List<Document> getReadArticlesFromDatabase(String username) {
+        Document userRecord = readHistoryCollection.find(new Document("username", username)).first();
+        if (userRecord == null) return Collections.emptyList();
+        return userRecord.getList("readArticles", Document.class);
+    }
 
+//like table function---------------------------------------------------------------
+    private void likeArticle(String username, News news) {
+        // Fetch the user record or create a new one
+        Document userRecord = likedArticlesCollection.find(new Document("username", username)).first();
+        if (userRecord == null) {
+         userRecord = new Document("username", username).append("likedArticles", new ArrayList<>());
+     }
+
+        // Safely fetch the likedArticles list
+        List<Document> likedArticles = userRecord.getList("likedArticles", Document.class, new ArrayList<>());
+
+        // Check for duplicates before adding
+        boolean alreadyLiked = likedArticles.stream()
+                .anyMatch(article -> article.getString("url").equals(news.getUrl()));
+
+        if (!alreadyLiked) {
+            likedArticles.add(new Document("title", news.getTitle())
+                    .append("description", news.getDescription())
+                    .append("url", news.getUrl())
+                    .append("category", news.getCategory())
+                    .append("timestamp", java.time.Instant.now().toString()));
+        }
+
+        // Update the document
+        userRecord.put("likedArticles", likedArticles); // Replace with updated list
+        likedArticlesCollection.replaceOne(new Document("username", username), userRecord, new ReplaceOptions().upsert(true));
+    }
+
+    private void unlikeArticle(String username, News news) {
+        // Fetch the user record
+        Document userRecord = likedArticlesCollection.find(new Document("username", username)).first();
+        if (userRecord == null) return;
+
+        // Safely fetch the likedArticles list
+        List<Document> likedArticles = userRecord.getList("likedArticles", Document.class, new ArrayList<>());
+
+        // Remove the article if it exists
+        likedArticles.removeIf(article -> article.getString("url").equals(news.getUrl()));
+
+        // Update the document
+        userRecord.put("likedArticles", likedArticles); // Replace with updated list
+        likedArticlesCollection.replaceOne(new Document("username", username), userRecord);
+    }
+
+    @FXML
     private void loadLikedTable() {
         ObservableList<News> likedList = FXCollections.observableArrayList();
         List<Document> likedArticles = getLikedArticlesFromDatabase(currentUser);
 
         for (Document doc : likedArticles) {
-            String category = doc.getString("category"); // Fetch category first
+            String category = doc.getString("category");
             String title = doc.getString("title");
             String description = doc.getString("description");
             String url = doc.getString("url");
@@ -692,27 +740,17 @@ public class News_Controller {
             // Match constructor parameter order
             likedList.add(new News(category, title, description, url));
         }
-
         like_table.setItems(likedList);
-    }
-
-
-
-    private List<Document> getReadArticlesFromDatabase(String username) {
-        Document userRecord = readHistoryCollection.find(new Document("username", username)).first();
-        if (userRecord == null) return Collections.emptyList();
-        return userRecord.getList("readArticles", Document.class);
     }
 
     private List<Document> getLikedArticlesFromDatabase(String username) {
         Document userRecord = likedArticlesCollection.find(new Document("username", username)).first();
-        if (userRecord == null || userRecord.getList("likedArticles", Document.class) == null) {
-            return Collections.emptyList();
-        }
+        if (userRecord == null) return Collections.emptyList();
         return userRecord.getList("likedArticles", Document.class);
     }
 
 
+    //------------------------------------------------------------------------------------------------------------------------
     public class RecommendationEngine {
         private final MongoDatabase database;
 
@@ -721,24 +759,32 @@ public class News_Controller {
         }
 
         public List<Document> recommendArticles(String username, int limit) {
+            // Fetch liked and read articles
             List<Document> likedArticles = getLikedArticlesFromDatabase(username);
+            List<Document> readArticles = getReadArticlesFromDatabase(username);
 
-            // Debugging: Check liked articles
-            System.out.println("Liked Articles for user " + username + ": " + likedArticles);
-            System.out.println("Liked Articles: " + likedArticles);
-            likedArticles.stream()
-                    .filter(doc -> doc.getString("category") != null)
-                    .forEach(doc -> System.out.println("Category: " + doc.getString("category")));
-
-
-            // Ensure likedArticles is not null
-            if (likedArticles == null || likedArticles.isEmpty()) {
-                System.out.println("No liked articles found for user: " + username);
-                return Collections.emptyList(); // Return an empty list or general recommendations
+            // Combine liked and read articles
+            List<Document> allArticles = new ArrayList<>();
+            if (likedArticles != null) {
+                allArticles.addAll(likedArticles);
+            }
+            if (readArticles != null) {
+                allArticles.addAll(readArticles);
             }
 
-            // Filter and collect categories
-            Map<String, Long> categoryCounts = likedArticles.stream()
+            // Debugging: Log combined articles
+            System.out.println("Combined Articles: " + allArticles);
+
+            // Ensure no duplication in the combined list (based on URL)
+            Map<String, Document> uniqueArticles = allArticles.stream()
+                    .collect(Collectors.toMap(
+                            article -> article.getString("url"), // Key: URL
+                            article -> article,                 // Value: Article Document
+                            (existing, replacement) -> existing // Resolve conflicts by keeping the existing article
+                    ));
+
+            // Filter and group by category
+            Map<String, Long> categoryCounts = uniqueArticles.values().stream()
                     .filter(doc -> doc.getString("category") != null)
                     .collect(Collectors.groupingBy(doc -> doc.getString("category"), Collectors.counting()));
 
@@ -747,15 +793,15 @@ public class News_Controller {
 
             // Get top categories
             List<String> topCategories = categoryCounts.entrySet().stream()
-                    .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue()))
-                    .limit(3)
+                    .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue())) // Sort descending by count
+                    .limit(3) // Limit to top 3 categories
                     .map(Map.Entry::getKey)
                     .collect(Collectors.toList());
 
             // Debugging: Check top categories
             System.out.println("Top Categories: " + topCategories);
 
-            // Fetch recommendations
+            // Fetch recommendations from top categories
             List<Document> recommendations = new ArrayList<>();
             for (String category : topCategories) {
                 categorized_newsCollection.find(new Document("category", category))
@@ -763,22 +809,28 @@ public class News_Controller {
                         .into(recommendations);
             }
 
-            // Debugging: Check recommendations
-            System.out.println("Recommendations: " + recommendations);
+            // Debugging: Check final recommendations
+            System.out.println("Final Recommendations: " + recommendations);
 
             return recommendations;
         }
 
+        private List<Document> getLikedArticlesFromDatabase(String username) {
+            Document userRecord = database.getCollection("LikedArticles")
+                    .find(new Document("username", username))
+                    .first();
+            return userRecord != null ? userRecord.getList("likedArticles", Document.class) : Collections.emptyList();
+        }
 
-        /*private List<Document> getArticlesFromCollection(MongoCollection<Document> collection, String username) {
-            Document userRecord = collection.find(new Document("username", username)).first();
-            if (userRecord == null) return Collections.emptyList();
-            return userRecord.getList("readArticles", Document.class);
-        }*/
+        private List<Document> getReadArticlesFromDatabase(String username) {
+            Document userRecord = database.getCollection("ReadHistory")
+                    .find(new Document("username", username))
+                    .first();
+            return userRecord != null ? userRecord.getList("readArticles", Document.class) : Collections.emptyList();
+        }
     }
 
-
-    //admin functions
+    //admin functions-----------------------------------------------------------------------------------------------------
     @FXML
     public void loadNewsTable() {
         if (adminControl == null) {
@@ -822,11 +874,8 @@ public class News_Controller {
             }
         });
 
-
-        // Add data to the table
         News_Admin.setItems(observableList);
     }
-
 
     private void loadUserControlTable() {
         ObservableList<AdminUserControl> usersList = FXCollections.observableArrayList();
@@ -920,9 +969,6 @@ public class News_Controller {
         description_field.clear();
         url_field.clear();
     }
-
-
-
 
 
 

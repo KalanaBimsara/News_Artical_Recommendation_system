@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="loadingScreen" prefHeight="295.0" prefWidth="491.0" stylesheets="@Styles.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <ProgressIndicator fx:id="progressIndicator" layoutX="192.0" layoutY="70.0" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="106.0" prefWidth="109.0" />
+        <Label fx:id="loadingLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="-1.0" layoutY="194.0" prefHeight="32.0" prefWidth="491.0" text="Loading, please wait...">
+         <font>
+            <Font size="22.0" />
+         </font></Label>
+    </children>
+</AnchorPane>

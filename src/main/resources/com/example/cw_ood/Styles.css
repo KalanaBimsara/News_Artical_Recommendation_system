@@ -176,3 +176,15 @@
 .scroll-bar .thumb:hover {
     -fx-background-color: #82b1ff;
 }
+#loadingScreen {
+    -fx-background-color: rgba(0, 0, 0, 0.8);
+}
+
+#loadingLabel {
+    -fx-text-fill: #cacaca;
+    -fx-font-size: 16px;
+}
+
+#progressIndicator {
+    -fx-progress-color: #9a9a9a;
+}

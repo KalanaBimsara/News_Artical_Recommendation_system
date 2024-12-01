@@ -200,6 +200,7 @@
                         <TableColumn fx:id="headline_like" prefWidth="308.0" text="Headline" />
                         <TableColumn fx:id="desciption_like" minWidth="0.0" prefWidth="470.0" text="Description" />
                         <TableColumn fx:id="learnmore_like" prefWidth="211.0" text="learn more" />
+                        <TableColumn fx:id="cat_like" prefWidth="211.0" text="category" />
                      </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
