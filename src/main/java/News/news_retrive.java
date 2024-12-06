@@ -1,4 +1,4 @@
-package com.example.cw_ood;
+package News;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -21,7 +21,6 @@ public class news_retrive {
         try {
             MongoCollection<Document> newsCollection = database.getCollection("News");
 
-            // Use a projection to fetch only the "title" and "description"
             MongoCursor<Document> cursor = newsCollection.find()
                     .projection(new Document("title", 1).append("description", 1).append("_id", 0))
                     .iterator();
@@ -31,7 +30,6 @@ public class news_retrive {
             }
 
             cursor.close();
-            System.out.println("Fetched titles and descriptions successfully.");
         } catch (Exception e) {
             System.err.println("Error fetching news: " + e.getMessage());
         }

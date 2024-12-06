@@ -1,5 +1,7 @@
 package com.example.cw_ood;
 
+import News.NewsFetcher;
+import News.News_Controller;
 import com.mongodb.client.MongoDatabase;
 import javafx.application.Application;
 import javafx.concurrent.Task;
@@ -15,22 +17,22 @@ public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) {
         try {
-            // Load the loading screen
+            // loading screen
             FXMLLoader loadingLoader = new FXMLLoader(getClass().getResource("/com/example/cw_ood/loading_screen.fxml"));
             Parent loadingRoot = loadingLoader.load();
             Scene loadingScene = new Scene(loadingRoot);
 
-            // Set the loading screen
+            // loading screen
             stage.setScene(loadingScene);
             stage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/stage_icon.png"))));
             stage.setTitle("News Article Application");
             stage.show();
 
-            // Create a background task to initialize the application
+            // Create a background task
             Task<Void> initTask = new Task<>() {
                 @Override
                 protected Void call() throws Exception {
-                    // Simulate loading (optional)
+                    // Simulate loading
                     Thread.sleep(2000);
 
                     // Create MongoDB connection and UserService
@@ -40,7 +42,7 @@ public class HelloApplication extends Application {
                     // Initialize AdminControl
                     AdminControl adminControl = new AdminControl(database);
 
-                    // Fetch news with error handling
+                    // Fetch news
                     NewsFetcher newsFetcher = new NewsFetcher(database);
                     try {
                         newsFetcher.fetchAndCategorizeNews();
@@ -48,7 +50,6 @@ public class HelloApplication extends Application {
                         System.err.println("Failed to fetch and categorize news: " + e.getMessage());
                     }
 
-                    // Pass database and services to main UI
                     FXMLLoader mainLoader = new FXMLLoader(getClass().getResource("/com/example/cw_ood/News_Article.fxml"));
                     Parent mainRoot = mainLoader.load();
                     News_Controller controller = mainLoader.getController();
@@ -56,7 +57,7 @@ public class HelloApplication extends Application {
                     controller.setDatabase(database);
                     controller.setAdminControl(adminControl);
 
-                    // Switch to main UI after initialization
+
                     javafx.application.Platform.runLater(() -> {
                         Scene mainScene = new Scene(mainRoot);
                         stage.setScene(mainScene);
@@ -66,7 +67,6 @@ public class HelloApplication extends Application {
                 }
             };
 
-            // Handle initialization errors
             initTask.setOnFailed(event -> {
                 System.err.println("Initialization failed: " + initTask.getException().getMessage());
             });
@@ -83,8 +83,7 @@ public class HelloApplication extends Application {
     @Override
     public void stop() throws Exception {
         super.stop();
-        MongoDBConnection.close(); // Clean up resources if needed
-        System.out.println("Application closed gracefully.");
+        MongoDBConnection.close();
     }
 
     public static void main(String[] args) {

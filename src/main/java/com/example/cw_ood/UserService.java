@@ -39,18 +39,18 @@ public class UserService {
                 .append("createdAt", java.time.Instant.now().toString());
 
         usersCollection.insertOne(newUser);
-        return true; // User created successfully
+        return true;
     }
 
     // Reset User Password
     public boolean resetPassword(String username, String newPassword) {
         if (!userExists(usersCollection, username)) {
-            return false; // User does not exist
+            return false;
         }
 
         usersCollection.updateOne(new Document("username", username),
                 new Document("$set", new Document("password", hashPassword(newPassword))));
-        return true; // Password reset successful
+        return true;
     }
 
     // Check if a User Exists
@@ -58,13 +58,13 @@ public class UserService {
         return collection.find(new Document("username", username)).first() != null;
     }
 
-    // Validate Credentials (Reusable for Users/Admins)
+    // Validate Credentials
     private boolean validateCredentials(MongoCollection<Document> collection, String username, String hashedPassword) {
         Document query = new Document("username", username).append("password", hashedPassword);
         return collection.find(query).first() != null;
     }
 
-    // Hash Password using SHA-256
+    // Hash Password
     private String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

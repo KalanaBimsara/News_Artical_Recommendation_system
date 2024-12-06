@@ -1,4 +1,4 @@
-package com.example.cw_ood;
+package News;
 
 public class News {
     private String id;
@@ -7,7 +7,7 @@ public class News {
     private String description;
     private String url;
 
-    // Constructor
+    // Constructor polymorphism
     public News(String category, String title, String description, String url) {
         this.category = category;
         this.title = title;
@@ -22,7 +22,7 @@ public class News {
         this.category = category;
     }
 
-    // Getters
+    // Getters setters
     public String getCategory() {
         return category;
     }
@@ -39,7 +39,6 @@ public class News {
         return url;
     }
 
-    // Setters (if needed)
     public void setCategory(String category) {
         this.category = category;
     }

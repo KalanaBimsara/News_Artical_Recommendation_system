@@ -1,4 +1,4 @@
-package com.example.cw_ood;
+package News;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -78,13 +78,11 @@ public class NewsFetcher {
 
                 // Upsert the document in the categorized_news collection
                 categorizedNewsCollection.replaceOne(
-                        new Document("url", urlStr), // Match by URL
+                        new Document("url", urlStr),
                         newsDocument,
-                        new ReplaceOptions().upsert(true) // Insert if it doesn't exist
+                        new ReplaceOptions().upsert(true)
                 );
             }
-
-            System.out.println("News articles fetched, categorized, and stored successfully.");
         } catch (Exception e) {
             System.err.println("Error fetching or storing news: " + e.getMessage());
         }

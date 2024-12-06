@@ -1,12 +1,23 @@
-package com.example.cw_ood;
+package News;
 
 import java.io.*;
 import java.net.*;
 import org.json.*;
+import javafx.concurrent.Task;
 
 public class NewsCategorizer {
     private static final String API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli";
     private static final String API_TOKEN = "Bearer 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";
+
+    // New method to categorize the news asynchronously
+    public static Task<String> categorizeAsync(String text, String[] categories) {
+        return new Task<String>() {
+            @Override
+            protected String call() throws Exception {
+                return categorize(text, categories); // Run the existing categorize logic in the background
+            }
+        };
+    }
 
     public static String categorize(String text, String[] categories) throws IOException {
         HttpURLConnection connection = null;
@@ -18,7 +29,7 @@ public class NewsCategorizer {
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setDoOutput(true);
 
-            // Prepare JSON payload
+            // make JSON payload
             JSONObject payload = new JSONObject();
             payload.put("inputs", text);
             payload.put("parameters", new JSONObject().put("candidate_labels", String.join(",", categories)));
@@ -51,4 +62,3 @@ public class NewsCategorizer {
         }
     }
 }
-

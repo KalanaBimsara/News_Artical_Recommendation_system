@@ -6,25 +6,22 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 
 public class MongoDBConnection {
-    private static MongoClient mongoClient; // MongoClient instance
-    private static MongoDatabase database; // Database instance
+    private static MongoClient mongoClient;
+    private static MongoDatabase database;
     private static final String CONNECTION_STRING = "mongodb+srv://kalanabimsara8:y09LYInOngyG4bgV@ooddb.b6kvb.mongodb.net/"; // MongoDB connection string
-    private static final String DATABASE_NAME = "prodatabase"; // Database name
+    private static final String DATABASE_NAME = "prodatabase";
 
-    // Static method to get the database instance
+
     public static MongoDatabase getDatabase() {
         try {
-            // Initialize MongoClient if not already created
+            // Initialize MongoClient
             if (mongoClient == null) {
                 ConnectionString connectionString = new ConnectionString(CONNECTION_STRING);
                 mongoClient = MongoClients.create(connectionString);
-                System.out.println("MongoDB client created successfully.");
             }
 
-            // Get database instance if not already retrieved
             if (database == null) {
                 database = mongoClient.getDatabase(DATABASE_NAME);
-                System.out.println("Connected to the database: " + DATABASE_NAME);
             }
         } catch (Exception e) {
             System.err.println("An error occurred while connecting to the database: " + e.getMessage());

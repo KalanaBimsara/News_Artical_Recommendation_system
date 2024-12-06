@@ -11,4 +11,6 @@ module com.example.cw_ood {
 
     opens com.example.cw_ood to javafx.fxml;
     exports com.example.cw_ood;
+    exports News;
+    opens News to javafx.fxml;
 }
